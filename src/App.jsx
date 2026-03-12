@@ -321,27 +321,94 @@ export default function VibeApp() {
   function recommendPlace(moodId) {
     const mood = PLACE_MOODS.find(m => m.id === moodId);
     const hour = new Date().getHours();
-    // 현재 시간대
-    const curSlot = hour < 11 ? "morning" : hour < 14 ? "afternoon" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
+    const curSlot = hour < 6 ? "night" : hour < 11 ? "morning" : hour < 14 ? "afternoon" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
 
-    const scored = places.map(p => {
+    // 온보딩 답변 → 장소 데이터 매핑
+    const whoMap = { "혼자":"alone", "같이":"friend", "강아지랑":"alone" };
+    const userWho = whoMap[answers.alone] || null;
+    // 같이인 경우 세부 선택 확인
+    const togetherWith = answers.subs?.alone?.[0] || null;
+    const whoKey = togetherWith === "연인" ? "partner" : togetherWith === "가족" ? "family" : userWho;
+
+    const budgetMap = { "무료":"low", "저렴":"low", "유료OK":"mid" };
+    const userBudget = budgetMap[answers.cost] || null;
+
+    const isOutdoorOk = answers.location !== "home";
+    const isIndoorOk = answers.location !== "out";
+
+    // 1단계: 하드 필터
+    const filtered = places.filter(p => {
+      // 시간대 필터: 해당 시간에 갈 수 없는 곳 제외
+      if (p.timeSlots && !p.timeSlots.includes(curSlot)) return false;
+      // 장소 타입 필터: 실내/실외
+      if (!isOutdoorOk && p.type.includes("outdoor") && !p.type.includes("indoor")) return false;
+      if (!isIndoorOk && p.type.includes("indoor") && !p.type.includes("outdoor")) return false;
+      // withWho 필터: 혼자인데 혼자 못 가는 곳 제외
+      if (whoKey === "alone" && p.withWho && !p.withWho.includes("alone")) return false;
+      return true;
+    });
+
+    // 필터 결과 부족하면 시간대 필터만 완화
+    const pool = filtered.length >= 3 ? filtered : places.filter(p => {
+      if (whoKey === "alone" && p.withWho && !p.withWho.includes("alone")) return false;
+      return true;
+    });
+
+    // 2단계: 스코어링
+    const scored = pool.map(p => {
       let score = 0;
-      // 분위기 매칭
+
+      // 분위기 매칭 (핵심) +4 per match
       if (mood && mood.vibes.length > 0) {
         const matchCount = p.vibe.filter(v => mood.vibes.includes(v)).length;
-        score += matchCount * 3;
+        score += matchCount * 4;
       }
-      // 시간대 매칭
-      if (p.timeSlots && p.timeSlots.includes(curSlot)) score += 2;
-      // 랜덤성
-      score += Math.random() * 2;
+
+      // 시간대 매칭 +3
+      if (p.timeSlots && p.timeSlots.includes(curSlot)) score += 3;
+
+      // withWho 매칭 +3
+      if (whoKey && p.withWho && p.withWho.includes(whoKey)) score += 3;
+
+      // budget 매칭 +2
+      if (userBudget && p.budget && p.budget.includes(userBudget)) score += 2;
+
+      // 밤에 야외 활동 페널티
+      if ((curSlot === "night") && p.type.includes("outdoor") && !p.type.includes("drive") && !["야경 스팟"].includes(p.name)) score -= 2;
+
+      // 비 올 때 야외 페널티 (나중에 날씨 API 연동 가능)
+      // 혼자인데 "데이트" 태그 있으면 페널티
+      if (whoKey === "alone" && p.tags.some(t => t.includes("데이트"))) score -= 2;
+
+      // 연인이면 로맨틱 보너스
+      if (whoKey === "partner" && p.vibe.includes("로맨틱")) score += 3;
+
+      // 가족이면 활동적/자유로운 보너스
+      if (whoKey === "family" && p.vibe.some(v => ["활동적","자유로운","평화로움"].includes(v))) score += 2;
+
+      // 약간의 랜덤성 (0~1.5)
+      score += Math.random() * 1.5;
+
       return { place: p, score };
     });
 
     scored.sort((a, b) => b.score - a.score);
     const main = scored[0]?.place;
     const alts = scored.slice(1, 4).map(s => s.place);
-    setPlaceResult({ main, alternatives: alts });
+
+    // 추천 이유 생성
+    const reasons = [];
+    if (mood && mood.id !== "random") reasons.push(mood.label);
+    if (curSlot === "morning") reasons.push("아침 시간대");
+    else if (curSlot === "afternoon") reasons.push("오후 시간대");
+    else if (curSlot === "evening") reasons.push("저녁 시간대");
+    else if (curSlot === "night") reasons.push("늦은 밤");
+    if (whoKey === "alone") reasons.push("혼자");
+    else if (whoKey === "partner") reasons.push("연인과 함께");
+    else if (whoKey === "family") reasons.push("가족과 함께");
+    else if (whoKey === "friend") reasons.push("친구와 함께");
+
+    setPlaceResult({ main, alternatives: alts, moodId, reason: reasons.join(" · ") });
     setPlaceScreen("result");
   }
 
@@ -1384,7 +1451,7 @@ export default function VibeApp() {
               background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               borderRadius:20, padding:"28px 22px", color:"#fff", marginBottom:16
             }}>
-              <div style={{ fontSize:13, opacity:0.8, marginBottom:8 }}>오늘의 추천</div>
+              <div style={{ fontSize:13, opacity:0.8, marginBottom:8 }}>오늘의 추천 — {placeResult.reason}</div>
               <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
                 <div style={{ fontSize:40 }}>{placeResult.main.emoji}</div>
                 <div>
@@ -1422,14 +1489,7 @@ export default function VibeApp() {
 
             {/* 다시 추천 + 처음으로 */}
             <div style={{ display:"flex", gap:10 }}>
-              <button onClick={() => {
-                const lastMood = PLACE_MOODS.find(m => {
-                  if (!placeResult) return false;
-                  const mainVibes = placeResult.main.vibe;
-                  return m.vibes.some(v => mainVibes.includes(v));
-                });
-                recommendPlace(lastMood?.id || "random");
-              }} style={{
+              <button onClick={() => recommendPlace(placeResult.moodId || "random")} style={{
                 flex:1, padding:"14px", borderRadius:12, border:"none",
                 background:"#F5F3F0", fontSize:14, fontWeight:700,
                 cursor:"pointer", fontFamily:"inherit", color:"#2D2D2D"
