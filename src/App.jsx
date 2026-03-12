@@ -307,6 +307,35 @@ export default function VibeApp() {
   const [challengeMode, setChallengeMode] = useState(false);
   const timeSlot = getTimeSlot();
 
+  // ── 코스 피드백 ──
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const FEEDBACK_REASONS = [
+    { id:"combo", emoji:"🔀", label:"조합이 이상해" },
+    { id:"time", emoji:"⏰", label:"시간이 안 맞아" },
+    { id:"flow", emoji:"🏠", label:"동선이 비현실적" },
+    { id:"boring", emoji:"😴", label:"재미없어 보여" },
+    { id:"other", emoji:"🤔", label:"기타" },
+  ];
+  function sendFeedback(reasonId) {
+    if (!selectedCourse) return;
+    const report = {
+      ts: new Date().toISOString(),
+      reason: reasonId,
+      course: {
+        title: selectedCourse.title,
+        activities: mySchedule.map(a => ({ id:a.id, name:a.name, genre:a.genre, duration:a.duration||a.time })),
+        totalMin: mySchedule.reduce((s,a) => s + (a.duration||a.time), 0),
+      },
+      answers: { need:answers.need, alone:answers.alone, location:answers.location, cost:answers.cost, hours:answers.hours },
+    };
+    const saved = JSON.parse(localStorage.getItem("course_feedback") || "[]");
+    saved.push(report);
+    localStorage.setItem("course_feedback", JSON.stringify(saved));
+    setFeedbackSent(true);
+    setTimeout(() => { setFeedbackSent(false); setFeedbackOpen(false); }, 1500);
+  }
+
   // ── 장소 탭 상태 ──
   const [placeScreen, setPlaceScreen] = useState("home"); // home | result
   const [placeResult, setPlaceResult] = useState(null); // { main, alternatives }
@@ -990,6 +1019,7 @@ export default function VibeApp() {
                 <div key={i} onClick={() => {
                   setSelectedCourse(course);
                   setMySchedule(course.activities);
+                  setFeedbackOpen(false); setFeedbackSent(false);
                 }} style={{
                   background: i === 0 ? "#191919" : "#fff",
                   color: i === 0 ? "#fff" : "#191919",
@@ -1126,6 +1156,44 @@ export default function VibeApp() {
               }}>
                 총 {mySchedule.reduce((s, a) => s + (a.duration || a.time), 0)}분 코스
               </div>
+
+              {/* 피드백 버튼 */}
+              {!feedbackOpen && !feedbackSent && (
+                <button onClick={() => setFeedbackOpen(true)} style={{
+                  width:"100%", marginTop:10, padding:"10px", background:"none",
+                  border:"1px dashed #ddd", borderRadius:10, fontSize:13,
+                  color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+                }}>
+                  👎 이 코스 별로야
+                </button>
+              )}
+              {feedbackOpen && !feedbackSent && (
+                <div style={{ marginTop:10, background:"#FAFAF8", borderRadius:12, padding:14 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:"#666", marginBottom:10 }}>어디가 별로야?</div>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                    {FEEDBACK_REASONS.map(r => (
+                      <button key={r.id} onClick={() => sendFeedback(r.id)} style={{
+                        padding:"8px 14px", borderRadius:20, border:"1px solid #E0DED8",
+                        background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit"
+                      }}>
+                        {r.emoji} {r.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => setFeedbackOpen(false)} style={{
+                    marginTop:8, background:"none", border:"none", fontSize:12,
+                    color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+                  }}>취소</button>
+                </div>
+              )}
+              {feedbackSent && (
+                <div style={{
+                  marginTop:10, textAlign:"center", padding:"12px",
+                  background:"#F0FFF0", borderRadius:10, fontSize:13, color:"#4a4"
+                }}>
+                  피드백 저장됨! 다음에 개선할게요
+                </div>
+              )}
             </div>
           )}
 

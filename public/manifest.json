@@ -1,0 +1,18 @@
+{
+  "name": "오늘 뭐하지?",
+  "short_name": "오늘뭐하지",
+  "description": "오늘 뭐할지, 뭐 먹을지, 어디 갈지 추천해주는 앱",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F4F0",
+  "theme_color": "#F5F4F0",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
