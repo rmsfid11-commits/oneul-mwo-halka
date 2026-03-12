@@ -403,7 +403,7 @@ export default function VibeApp() {
               blacklistGenres: answers.blacklistGenres,
               timeSlot: getTimeSlot(),
             };
-            const plans = buildCoursePlans(ACTIVITIES, coursePrefs);
+            const plans = buildCoursePlans(ACTIVITIES, coursePrefs, newWinners[0].id);
             // 챔피언이 포함된 코스를 우선 정렬
             plans.sort((a, b) => {
               const aHas = a.activities.some(act => act.id === newWinners[0].id) ? 1 : 0;

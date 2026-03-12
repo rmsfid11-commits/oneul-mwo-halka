@@ -181,11 +181,42 @@ export function pickNextActivity(
 }
 
 // ── 코스 제목 생성 ──
-export function generatePlanTitle(plan, prefs) {
+export function generatePlanTitle(plan, prefs, courseIndex = 0) {
   const genres = plan.map((a) => a.genre);
   const hasGenre = (g) => genres.includes(g);
   const isHome = prefs.location === "home";
   const need = prefs.need;
+  const firstName = plan[0]?.name || "";
+
+  // 낚시 포함
+  if (hasGenre("water") && plan.some((a) => a.name?.includes("낚시"))) {
+    return "물 위에서 여유 부리는 코스";
+  }
+
+  // 수상 스포츠 포함
+  if (hasGenre("water")) {
+    return "물놀이하고 개운하게 마무리하는 코스";
+  }
+
+  // 등산/클라이밍
+  if (hasGenre("mountain")) {
+    return "땀 좀 흘리고 산 공기 마시는 코스";
+  }
+
+  // 캠핑
+  if (hasGenre("camp")) {
+    return "자연 속에서 느긋하게 보내는 코스";
+  }
+
+  // 반려견
+  if (hasGenre("pet")) {
+    return "우리 강아지랑 함께하는 코스";
+  }
+
+  // 운동 포함
+  if (hasGenre("fitness") || hasGenre("sport") || hasGenre("move") || hasGenre("cycling")) {
+    return "몸 좀 쓰고 개운하게 마무리하는 코스";
+  }
 
   // 카페 + 산책 조합
   if (
@@ -196,24 +227,11 @@ export function generatePlanTitle(plan, prefs) {
   }
 
   // 집 위주
-  if (isHome || genres.every((g) => ["healing", "culture", "art", "digital", "cooking"].includes(g))) {
+  if (isHome || genres.every((g) => ["healing", "culture", "art", "digital", "cooking", "tidy", "beauty", "relax"].includes(g))) {
     if (need === "멍때리기") return "아무것도 안 하면서 쉬어가는 코스";
+    if (hasGenre("tidy")) return "소소하게 정리하면서 보내는 코스";
+    if (hasGenre("beauty") || hasGenre("relax")) return "나를 위해 가꾸고 쉬는 코스";
     return "무리 없이 집 중심으로 쉬어가는 코스";
-  }
-
-  // 운동 포함
-  if (hasGenre("fitness") || hasGenre("sport") || hasGenre("move")) {
-    return "몸 좀 쓰고 개운하게 마무리하는 코스";
-  }
-
-  // 감성 위주
-  if (hasGenre("art") || hasGenre("craft") || plan.some((a) => a.vibe?.includes("감성충전"))) {
-    return "감성 흐름으로 이어지는 코스";
-  }
-
-  // 자극/도전
-  if (need === "자극" || hasGenre("mountain") || hasGenre("water")) {
-    return "좀 색다르게 움직여보는 코스";
   }
 
   // 먹기 포함
@@ -221,21 +239,35 @@ export function generatePlanTitle(plan, prefs) {
     return "먹고 즐기고 쉬는 풀코스";
   }
 
-  // 자연
+  // 자연 / 여행
   if (hasGenre("nature") || hasGenre("travel")) {
     return "바깥 공기 마시며 리프레시하는 코스";
   }
 
-  // 반려견
-  if (hasGenre("pet")) {
-    return "우리 강아지랑 함께하는 코스";
+  // 감성 위주
+  if (hasGenre("art") || hasGenre("craft") || plan.some((a) => a.vibe?.includes("감성충전"))) {
+    return "감성 흐름으로 이어지는 코스";
   }
 
-  // 기본
+  // 문화
+  if (hasGenre("culture") || hasGenre("learn")) {
+    return "머리도 쓰고 즐기기도 하는 코스";
+  }
+
+  // 사교
+  if (hasGenre("social")) {
+    return "사람 만나고 놀면서 푸는 코스";
+  }
+
+  // 기본: need 기반
   if (need === "힐링") return "오늘은 나를 위해 쉬어가는 코스";
   if (need === "성취감") return "뭔가 해낸 느낌으로 마무리하는 코스";
+  if (need === "자극") return "좀 색다르게 움직여보는 코스";
+  if (need === "멍때리기") return "그냥 흘러가는 대로 보내는 코스";
 
-  return "오늘 하루를 채워줄 코스";
+  // 최종 fallback: 코스별로 다른 제목
+  const fallbacks = ["오늘 하루를 채워줄 코스", "이런 흐름도 괜찮을 거야", "가볍게 이렇게 보내봐"];
+  return fallbacks[courseIndex % fallbacks.length];
 }
 
 // ── 코스 추천 이유 생성 ──
@@ -279,12 +311,24 @@ function dedupePlans(plans) {
 }
 
 // ── 메인 함수: 코스 3개 조립 ──
-export function buildCoursePlans(activities, prefs) {
+// championId: 토너먼트 우승자 ID (있으면 첫 번째 코스에 강제 포함)
+export function buildCoursePlans(activities, prefs, championId) {
   const totalMinutes = (prefs.hours || 2) * 60;
   const maxActivitiesPerCourse = 4;
 
+  // 챔피언 활동 찾기
+  const champion = championId ? activities.find((a) => a.id === championId) : null;
+
   // anchor 후보 최대 6개
-  const anchors = getAnchorCandidates(activities, prefs, totalMinutes);
+  let anchors = getAnchorCandidates(activities, prefs, totalMinutes);
+
+  // 챔피언이 anchor 후보에 없으면 강제 추가 (맨 앞)
+  if (champion && !anchors.find((a) => a.id === champion.id)) {
+    anchors = [champion, ...anchors];
+  } else if (champion) {
+    // 이미 있으면 맨 앞으로 이동
+    anchors = [champion, ...anchors.filter((a) => a.id !== champion.id)];
+  }
 
   if (anchors.length === 0) {
     // anchor 없으면 점수 높은 활동 단독 코스로 대체
@@ -294,9 +338,9 @@ export function buildCoursePlans(activities, prefs) {
       .sort((a, b) => b.s - a.s)
       .slice(0, 3)
       .map((x) => [x.a]);
-    return fallback.map((plan) => ({
+    return fallback.map((plan, idx) => ({
       activities: plan,
-      title: generatePlanTitle(plan, prefs),
+      title: generatePlanTitle(plan, prefs, idx),
       reason: generatePlanReason(plan, prefs),
       totalMinutes: plan.reduce((s, a) => s + (a.duration || a.time || 30), 0),
     }));
@@ -370,9 +414,9 @@ export function buildCoursePlans(activities, prefs) {
   const uniquePlans = dedupePlans(rawPlans);
 
   // 결과 조립
-  return uniquePlans.slice(0, 3).map((plan) => ({
+  return uniquePlans.slice(0, 3).map((plan, idx) => ({
     activities: plan,
-    title: generatePlanTitle(plan, prefs),
+    title: generatePlanTitle(plan, prefs, idx),
     reason: generatePlanReason(plan, prefs),
     totalMinutes: plan.reduce(
       (sum, a) => sum + (a.duration || a.time || 30),
