@@ -114,15 +114,18 @@ function matchActivities(answers) {
     if (answers.alone === "같이"    && t.alone.length === 1 && (t.alone[0] === "혼자" || t.alone[0] === "강아지랑")) return null;
     if (answers.alone === "강아지랑" && !t.alone.includes("강아지랑")) return null;
     if (act.time > answers.hours * 60) return null;
-    // 시간대 하드 필터: timeSlots가 있으면 현재 시간대에 맞아야 통과
+    // 시간대: 토너먼트는 취향 발견용이므로 감점만 (코스 빌더에서 하드 필터)
     const currentSlot = getTimeSlot();
-    if (act.timeSlots && act.timeSlots.length > 0 && !act.timeSlots.includes(currentSlot)) return null;
+    const timeSlotMismatch = act.timeSlots && act.timeSlots.length > 0 && !act.timeSlots.includes(currentSlot);
     if (answers.cost === "무료" && !t.cost.includes("무료")) return null;
     if (answers.blacklistGenres?.includes(act.genre)) return null;
     const fishingIds = [70,71,72,73];
     const waterSportIds = [74,75,76,77,78,79,80];
     if (answers.blacklistGenres?.includes("fishing") && fishingIds.includes(act.id)) return null;
     if (answers.blacklistGenres?.includes("watersport") && waterSportIds.includes(act.id)) return null;
+
+    // 시간대 불일치 감점 (토너먼트에서 뒤로 밀림)
+    if (timeSlotMismatch) score -= 10;
 
     // 기본 스코어
     if (answers.need && t.need.includes(answers.need)) score += 5;
