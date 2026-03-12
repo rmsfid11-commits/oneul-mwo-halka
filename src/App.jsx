@@ -112,8 +112,11 @@ function matchActivities(answers) {
     if (answers.location === "home" && !t.location.includes("home")) return null;
     if (answers.alone === "혼자"    && t.alone.length === 1 && t.alone[0] === "같이") return null;
     if (answers.alone === "같이"    && t.alone.length === 1 && (t.alone[0] === "혼자" || t.alone[0] === "강아지랑")) return null;
-    if (answers.alone === "강아지랑" && !t.alone.includes("강아지랑") && !t.alone.includes("혼자")) return null;
+    if (answers.alone === "강아지랑" && !t.alone.includes("강아지랑")) return null;
     if (act.time > answers.hours * 60) return null;
+    // 시간대 하드 필터: timeSlots가 있으면 현재 시간대에 맞아야 통과
+    const currentSlot = getTimeSlot();
+    if (act.timeSlots && act.timeSlots.length > 0 && !act.timeSlots.includes(currentSlot)) return null;
     if (answers.cost === "무료" && !t.cost.includes("무료")) return null;
     if (answers.blacklistGenres?.includes(act.genre)) return null;
     const fishingIds = [70,71,72,73];
@@ -701,26 +704,27 @@ export default function VibeApp() {
       )}
 
       {/* ── 결과 화면 ── */}
-      {screen === "result" && champion && (() => {
-        const learnedVibes = getLearnedVibes();
-        const VIBE_LABEL = {
-          고요함:"조용하고 고요한 것", 두근거림:"두근거리는 것", 땀흘리기:"땀 흘리는 것",
-          감성충전:"감성 충전", 완성하는기쁨:"완성의 기쁨", 자연감성:"자연 속 활동",
-          소소한사치:"소소한 사치", 지적자극:"머리 쓰는 활동", 혼자만의시간:"혼자만의 시간",
-          새로운경험:"새로운 경험", 야간감성:"밤 감성", 도전:"도전적인 활동", 자유로움:"자유로운 활동",
-        };
-        return (
+      {screen === "result" && champion && (
         <div className="result-screen fade-in">
 
           {/* 패턴 학습 배지 */}
-          {learnedVibes.length >= 2 && (
-            <div style={{
-              background:"#F5F3EE", borderRadius:14, padding:"10px 14px",
-              marginBottom:12, fontSize:12, color:"#666", lineHeight:1.6
-            }}>
-              📊 <b>너의 취향 패턴</b> — {learnedVibes.slice(0,3).map(v => VIBE_LABEL[v] || v).join(", ")} 을 자주 선택했어
-            </div>
-          )}
+          {(() => {
+            const learnedVibes = getLearnedVibes();
+            const VIBE_LABEL = {
+              고요함:"조용하고 고요한 것", 두근거림:"두근거리는 것", 땀흘리기:"땀 흘리는 것",
+              감성충전:"감성 충전", 완성하는기쁨:"완성의 기쁨", 자연감성:"자연 속 활동",
+              소소한사치:"소소한 사치", 지적자극:"머리 쓰는 활동", 혼자만의시간:"혼자만의 시간",
+              새로운경험:"새로운 경험", 야간감성:"밤 감성", 도전:"도전적인 활동", 자유로움:"자유로운 활동",
+            };
+            return learnedVibes.length >= 2 ? (
+              <div style={{
+                background:"#F5F3EE", borderRadius:14, padding:"10px 14px",
+                marginBottom:12, fontSize:12, color:"#666", lineHeight:1.6
+              }}>
+                📊 <b>너의 취향 패턴</b> — {learnedVibes.slice(0,3).map(v => VIBE_LABEL[v] || v).join(", ")} 을 자주 선택했어
+              </div>
+            ) : null;
+          })()}
 
           {/* ── 코스 선택 모드 ── */}
           {!selectedCourse && courses.length > 0 && (
@@ -778,7 +782,7 @@ export default function VibeApp() {
               ))}
 
               {/* 코스 없이 직접 만들기 */}
-              <button onClick={() => {
+              <button type="button" onClick={() => {
                 setSelectedCourse({ activities: [champion], title: "직접 만든 코스", reason: "", totalMinutes: champion.time });
                 setMySchedule([champion]);
               }} style={{
@@ -830,8 +834,12 @@ export default function VibeApp() {
           {/* ── 코스 선택 후: 일정 상세 ── */}
           {selectedCourse && (
             <div style={{ marginBottom:20 }}>
-              <div style={{ marginBottom:16 }}>
-                <div style={{ fontSize:20, fontWeight:900, letterSpacing:"-0.5px" }}>{selectedCourse.title}</div>
+              {/* 제목 (탭하면 코스 목록으로 돌아감) */}
+              <div style={{ marginBottom:16, cursor:"pointer" }} onClick={() => { setSelectedCourse(null); setMySchedule([]); }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ fontSize:14, color:"#aaa" }}>←</span>
+                  <div style={{ fontSize:20, fontWeight:900, letterSpacing:"-0.5px" }}>{selectedCourse.title}</div>
+                </div>
                 <div style={{ fontSize:13, color:"#999", marginTop:4 }}>{selectedCourse.reason}</div>
               </div>
 
@@ -864,29 +872,29 @@ export default function VibeApp() {
               {/* 총 시간 */}
               <div style={{
                 textAlign:"center", padding:"12px", fontSize:13, color:"#aaa",
-                background:"#F5F3EE", borderRadius:12, marginBottom:12
+                background:"#F5F3EE", borderRadius:12
               }}>
                 총 {mySchedule.reduce((s, a) => s + (a.duration || a.time), 0)}분 코스
               </div>
-
-              {/* 다른 코스 보기 */}
-              <button onClick={() => { setSelectedCourse(null); setMySchedule([]); }} style={{
-                width:"100%", padding:"12px", background:"#fff",
-                border:"1.5px solid #E0DED8", borderRadius:14,
-                fontSize:13, fontWeight:700, cursor:"pointer",
-                fontFamily:"inherit", color:"#888", marginBottom:8
-              }}>
-                ← 다른 코스 보기
-              </button>
             </div>
           )}
 
           {/* 하단 버튼 */}
           <div style={{
-            position:"sticky", bottom:0, background:"#F5F4F0",
             padding:"12px 0 24px", marginTop:8
           }}>
-            <button className="start-btn" onClick={() => {
+            {/* 코스 선택 중이면 "다른 코스 보기" 버튼 표시 */}
+            {selectedCourse && courses.length > 0 && (
+              <button type="button" onClick={() => { setSelectedCourse(null); setMySchedule([]); }} style={{
+                width:"100%", padding:"14px", background:"#fff",
+                border:"1.5px solid #E0DED8", borderRadius:14,
+                fontSize:14, fontWeight:700, cursor:"pointer",
+                fontFamily:"inherit", color:"#666", marginBottom:8
+              }}>
+                ← 다른 코스 보기
+              </button>
+            )}
+            <button type="button" className="start-btn" style={{ marginTop:0 }} onClick={() => {
               setScreen("setup");
               setAnswers({ need:"", alone:"", location:"", cost:"", hours:2, subs:{}, preferredVibes: answers.preferredVibes, blacklistGenres: answers.blacklistGenres });
               setExpanded({});
@@ -897,15 +905,14 @@ export default function VibeApp() {
               setTournamentHistory([]);
               setChampFlipped(false);
             }}>다시 해보기</button>
-            <button onClick={() => { clearHistory(); alert("히스토리 초기화됐어. 다음부터 모든 활동이 다시 나와!"); }} style={{
+            <button type="button" onClick={() => { clearHistory(); alert("히스토리 초기화됐어. 다음부터 모든 활동이 다시 나와!"); }} style={{
               width:"100%", marginTop:8, padding:"10px",
               background:"transparent", border:"none",
               fontSize:12, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
             }}>↺ 히스토리 초기화 (처음부터 다시)</button>
           </div>
         </div>
-        );
-      })()}
+      )}
 
       </>)}
 

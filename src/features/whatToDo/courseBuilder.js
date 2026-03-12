@@ -21,6 +21,10 @@ export function scoreActivity(activity, prefs) {
   // 블랙리스트 장르면 -100 (사실상 제외)
   if (blacklistGenres.includes(activity.genre)) return -100;
 
+  // 시간대 하드 필터: timeSlots가 있으면 현재 시간대에 맞아야 함
+  const slot = timeSlot || detectTimeSlot();
+  if (activity.timeSlots && activity.timeSlots.length > 0 && !activity.timeSlots.includes(slot)) return -100;
+
   let score = 0;
   const tags = activity.tags || {};
 
@@ -51,7 +55,6 @@ export function scoreActivity(activity, prefs) {
   }
 
   // 시간대 보너스
-  const slot = timeSlot || detectTimeSlot();
   const g = activity.genre;
   if (slot === "morning") {
     if (["nature", "fitness", "cooking"].includes(g)) score += 2;
