@@ -659,11 +659,49 @@ export default function VibeApp() {
             {canStart ? "취향 찾기 시작 →" : `아직 ${missing.length}개 남았어`}
           </button>
           {canStart && (
+            <button onClick={() => {
+              // 토너먼트 스킵: 점수 기반으로 바로 코스 생성
+              const learnedVibes = getLearnedVibes();
+              const enrichedAnswers = {
+                ...answers,
+                preferredVibes: [...new Set([...(answers.preferredVibes || []), ...learnedVibes])]
+              };
+              let m = matchActivities(enrichedAnswers);
+              m = m.map(act => ({ ...act, score: (act.score || 0) + getTimeBonus(act) }))
+                   .sort((a, b) => b.score - a.score);
+              const topAct = m[0];
+              if (!topAct) return;
+              setChampion(topAct);
+              setMatched(m);
+              try {
+                const coursePrefs = {
+                  need: answers.need, alone: answers.alone,
+                  location: answers.location, cost: answers.cost,
+                  subs: answers.subs, hours: answers.hours,
+                  preferredVibes: enrichedAnswers.preferredVibes,
+                  blacklistGenres: answers.blacklistGenres,
+                  timeSlot: getTimeSlot(),
+                };
+                const plans = buildCoursePlans(ACTIVITIES, coursePrefs, topAct.id);
+                setCourses(plans);
+              } catch { setCourses([]); }
+              setSelectedCourse(null);
+              setScreen("result");
+            }} style={{
+              width:"100%", marginTop:10, padding:"15px",
+              background:"#fff", border:"1.5px solid #E0DED8",
+              borderRadius:16, fontSize:15, fontWeight:700,
+              color:"#555", cursor:"pointer", fontFamily:"inherit"
+            }}>
+              🎲 그냥 골라줘
+            </button>
+          )}
+          {canStart && (
             <button onClick={() => startTournament(true)} style={{
-              width:"100%", marginTop:10, padding:"13px",
-              background:"transparent", border:"1.5px dashed #C8C4BC",
-              borderRadius:16, fontSize:14, fontWeight:700,
-              color:"#888", cursor:"pointer", fontFamily:"inherit"
+              width:"100%", marginTop:8, padding:"12px",
+              background:"transparent", border:"none",
+              fontSize:13, fontWeight:600,
+              color:"#aaa", cursor:"pointer", fontFamily:"inherit"
             }}>
               ✦ 도전 모드 — 안 해본 것들로만
             </button>
@@ -899,8 +937,7 @@ export default function VibeApp() {
             )}
             <button type="button" className="start-btn" style={{ marginTop:0 }} onClick={() => {
               setScreen("setup");
-              setAnswers({ need:"", alone:"", location:"", cost:"", hours:2, subs:{}, preferredVibes: answers.preferredVibes, blacklistGenres: answers.blacklistGenres });
-              setExpanded({});
+              // 답변 유지 (바꾸고 싶은 것만 설정 화면에서 탭)
               setMySchedule([]);
               setSuggestions([]);
               setCourses([]);
