@@ -307,6 +307,44 @@ export default function VibeApp() {
   const [challengeMode, setChallengeMode] = useState(false);
   const timeSlot = getTimeSlot();
 
+  // ── 장소 탭 상태 ──
+  const [placeScreen, setPlaceScreen] = useState("home"); // home | result
+  const [placeResult, setPlaceResult] = useState(null); // { main, alternatives }
+
+  const PLACE_MOODS = [
+    { id:"chill", emoji:"😌", label:"조용히 쉬고 싶어", vibes:["고요함","힐링","평화로움","느긋함","편안한"] },
+    { id:"active", emoji:"⚡", label:"활동적으로 놀래", vibes:["활동적","신나는","재미","해방감"] },
+    { id:"romantic", emoji:"💕", label:"감성 충전", vibes:["감성","로맨틱","특별함","영감","지적"] },
+    { id:"random", emoji:"🎲", label:"아무데나 골라줘", vibes:[] },
+  ];
+
+  function recommendPlace(moodId) {
+    const mood = PLACE_MOODS.find(m => m.id === moodId);
+    const hour = new Date().getHours();
+    // 현재 시간대
+    const curSlot = hour < 11 ? "morning" : hour < 14 ? "afternoon" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
+
+    const scored = places.map(p => {
+      let score = 0;
+      // 분위기 매칭
+      if (mood && mood.vibes.length > 0) {
+        const matchCount = p.vibe.filter(v => mood.vibes.includes(v)).length;
+        score += matchCount * 3;
+      }
+      // 시간대 매칭
+      if (p.timeSlots && p.timeSlots.includes(curSlot)) score += 2;
+      // 랜덤성
+      score += Math.random() * 2;
+      return { place: p, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    const main = scored[0]?.place;
+    const alts = scored.slice(1, 4).map(s => s.place);
+    setPlaceResult({ main, alternatives: alts });
+    setPlaceScreen("result");
+  }
+
   // ── 음식 탭 상태 ──
   const [foodScreen, setFoodScreen] = useState("home"); // home | questions | result | roulette
   const [foodStep, setFoodStep] = useState(0);
@@ -1309,28 +1347,101 @@ export default function VibeApp() {
       {/* ── 어디 가지 탭 ── */}
       {tab === "whereToGo" && (
         <div className="screen fade-in" style={{ paddingTop:32 }}>
-          <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>어디 가지? 📍</div>
-          <div style={{ fontSize:14, color:"#999", marginBottom:24 }}>오늘 기분에 맞는 장소를 찾아줄게</div>
 
-          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {places.map(place => (
-              <div key={place.id} style={{
-                background:"#fff", borderRadius:16, padding:"16px 18px",
-                display:"flex", alignItems:"center", gap:14,
-                boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
-              }}>
-                <div style={{ fontSize:32 }}>{place.emoji}</div>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:15, fontWeight:700, marginBottom:3 }}>{place.name}</div>
-                  <div style={{ fontSize:12, color:"#aaa", lineHeight:1.4 }}>{place.summary}</div>
+          {/* 홈 화면 */}
+          {placeScreen === "home" && (<>
+            <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>어디 가지? 📍</div>
+            <div style={{ fontSize:14, color:"#999", marginBottom:28 }}>지금 기분에 맞는 장소를 찾아줄게</div>
+
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {PLACE_MOODS.map(m => (
+                <button key={m.id} onClick={() => recommendPlace(m.id)} style={{
+                  background:"#fff", border:"none", borderRadius:16, padding:"20px 18px",
+                  display:"flex", alignItems:"center", gap:14, cursor:"pointer",
+                  boxShadow:"0 1px 4px rgba(0,0,0,0.06)", fontFamily:"inherit",
+                  textAlign:"left", transition:"transform 0.15s"
+                }} onPointerDown={e => e.currentTarget.style.transform="scale(0.97)"}
+                   onPointerUp={e => e.currentTarget.style.transform="scale(1)"}
+                   onPointerLeave={e => e.currentTarget.style.transform="scale(1)"}>
+                  <div style={{ fontSize:28 }}>{m.emoji}</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:"#2D2D2D" }}>{m.label}</div>
+                </button>
+              ))}
+            </div>
+          </>)}
+
+          {/* 결과 화면 */}
+          {placeScreen === "result" && placeResult && (<>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:20 }}>
+              <button onClick={() => setPlaceScreen("home")} style={{
+                background:"none", border:"none", fontSize:20, cursor:"pointer", padding:4
+              }}>←</button>
+              <div style={{ fontSize:20, fontWeight:800 }}>추천 장소</div>
+            </div>
+
+            {/* 메인 추천 */}
+            <div style={{
+              background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              borderRadius:20, padding:"28px 22px", color:"#fff", marginBottom:16
+            }}>
+              <div style={{ fontSize:13, opacity:0.8, marginBottom:8 }}>오늘의 추천</div>
+              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
+                <div style={{ fontSize:40 }}>{placeResult.main.emoji}</div>
+                <div>
+                  <div style={{ fontSize:22, fontWeight:800 }}>{placeResult.main.name}</div>
+                  <div style={{ fontSize:13, opacity:0.85, marginTop:4, lineHeight:1.5 }}>{placeResult.main.summary}</div>
                 </div>
               </div>
-            ))}
-          </div>
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:8 }}>
+                {placeResult.main.tags.map(tag => (
+                  <span key={tag} style={{
+                    background:"rgba(255,255,255,0.2)", borderRadius:20,
+                    padding:"4px 10px", fontSize:11, color:"#fff"
+                  }}>#{tag}</span>
+                ))}
+              </div>
+            </div>
 
-          <div style={{ textAlign:"center", padding:"24px", color:"#bbb", fontSize:13 }}>
-            질문 기반 추천은 곧 업데이트돼요
-          </div>
+            {/* 대안 */}
+            <div style={{ fontSize:14, fontWeight:700, color:"#999", marginBottom:10 }}>이런 곳도 있어요</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
+              {placeResult.alternatives.map(p => (
+                <div key={p.id} style={{
+                  background:"#fff", borderRadius:14, padding:"14px 16px",
+                  display:"flex", alignItems:"center", gap:12,
+                  boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
+                }}>
+                  <div style={{ fontSize:28 }}>{p.emoji}</div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:14, fontWeight:700, marginBottom:2 }}>{p.name}</div>
+                    <div style={{ fontSize:12, color:"#aaa", lineHeight:1.4 }}>{p.summary}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 다시 추천 + 처음으로 */}
+            <div style={{ display:"flex", gap:10 }}>
+              <button onClick={() => {
+                const lastMood = PLACE_MOODS.find(m => {
+                  if (!placeResult) return false;
+                  const mainVibes = placeResult.main.vibe;
+                  return m.vibes.some(v => mainVibes.includes(v));
+                });
+                recommendPlace(lastMood?.id || "random");
+              }} style={{
+                flex:1, padding:"14px", borderRadius:12, border:"none",
+                background:"#F5F3F0", fontSize:14, fontWeight:700,
+                cursor:"pointer", fontFamily:"inherit", color:"#2D2D2D"
+              }}>🔄 다시 추천</button>
+              <button onClick={() => setPlaceScreen("home")} style={{
+                flex:1, padding:"14px", borderRadius:12, border:"none",
+                background:"#F5F3F0", fontSize:14, fontWeight:700,
+                cursor:"pointer", fontFamily:"inherit", color:"#2D2D2D"
+              }}>🏠 처음으로</button>
+            </div>
+          </>)}
+
         </div>
       )}
 
