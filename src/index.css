@@ -1,0 +1,384 @@
+/* 오늘 뭐하지? — Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #F5F4F0;
+  color: #191919;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ─── 공통 ─── */
+.screen {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.fade-in {
+  animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── 섹션 태그 ─── */
+.section-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* ─── 질문 카드 ─── */
+.q-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.q-label {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #191919;
+}
+
+/* ─── 옵션 ─── */
+.opt-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.opt-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #ECEAE4;
+  background: #FAFAF8;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: inherit;
+  width: 100%;
+}
+
+.opt-btn.selected {
+  border-color: #191919;
+  background: #191919;
+}
+
+.opt-btn .opt-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #191919;
+}
+
+.opt-btn.selected .opt-label {
+  color: #fff;
+}
+
+/* ─── 서브 옵션 ─── */
+.sub-list {
+  margin-top: 6px;
+  margin-left: 8px;
+  margin-bottom: 4px;
+}
+
+.sub-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.sub-item:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.sub-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid #D0CEC8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.sub-check.checked {
+  background: #191919;
+  border-color: #191919;
+}
+
+.sub-text {
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+/* ─── 슬라이더 ─── */
+.slider-wrap {
+  padding: 8px 0;
+}
+
+.hour-display {
+  font-size: 28px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 12px;
+  color: #191919;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #E0DED8;
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #191919;
+  cursor: pointer;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── 시작 버튼 ─── */
+.start-btn {
+  width: 100%;
+  padding: 17px;
+  background: #191919;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 24px;
+  transition: all 0.2s;
+}
+
+.start-btn:disabled {
+  background: #D0CEC8;
+  color: #999;
+  cursor: default;
+}
+
+.start-btn:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* ─── 토너먼트 ─── */
+.tournament-screen {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #E0DED8;
+  border-radius: 2px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #191919;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.match-label {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 32px;
+  font-weight: 600;
+}
+
+.cards-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.toss-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+}
+
+.toss-card:hover {
+  border-color: #191919;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.toss-card:active {
+  transform: scale(0.96);
+}
+
+.toss-card.picking-left,
+.toss-card.picking-right {
+  background: #191919;
+  border-color: #191919;
+  transform: scale(1.03);
+}
+
+.toss-card.picking-left .card-name,
+.toss-card.picking-right .card-name {
+  color: #fff;
+}
+
+.toss-card.picking-left .card-time,
+.toss-card.picking-right .card-time {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.card-emoji {
+  font-size: 44px;
+  margin-bottom: 12px;
+}
+
+.card-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #191919;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+
+.card-time {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.vs-divider {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+/* ─── 결과 화면 ─── */
+.result-screen {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.champ-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ─── 일정 ─── */
+.schedule-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.schedule-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  border-radius: 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.s-emoji {
+  font-size: 22px;
+}
+
+.s-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.s-time {
+  font-size: 12px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* ─── 스크롤바 숨기기 ─── */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── 모바일 최적화 ─── */
+@media (max-width: 480px) {
+  .tournament-screen {
+    padding: 20px 16px 32px;
+  }
+  .cards-wrap {
+    gap: 10px;
+  }
+  .toss-card {
+    padding: 24px 12px;
+  }
+  .card-emoji {
+    font-size: 36px;
+  }
+}
