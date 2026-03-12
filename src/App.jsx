@@ -316,7 +316,12 @@ export default function VibeApp() {
   const [rouletteFood, setRouletteFood] = useState(null);
   const [spinning, setSpinning] = useState(false);
   const [spinDisplay, setSpinDisplay] = useState(null);
+  const [flippedFoods, setFlippedFoods] = useState(new Set());
   const spinRef = useRef(null);
+
+  function toggleFoodFlip(id) {
+    setFlippedFoods(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  }
 
   useEffect(() => { return () => { if (spinRef.current) clearTimeout(spinRef.current); }; }, []);
 
@@ -1118,37 +1123,79 @@ export default function VibeApp() {
 
           {/* 결과 */}
           {foodScreen === "result" && foodResult?.main && (<>
-            <div style={{ fontSize:13, color:"#aaa", marginBottom:16 }}>추천 결과</div>
+            <div style={{ fontSize:13, color:"#aaa", marginBottom:6 }}>추천 결과 <span style={{ color:"#ccc" }}>· 카드를 탭하면 상식이 나와</span></div>
 
-            <div style={{
-              background:"#191919", borderRadius:24, padding:"28px 24px",
-              textAlign:"center", marginBottom:16, color:"#fff"
-            }}>
-              <div style={{ fontSize:56, marginBottom:12 }}>{foodResult.main.emoji}</div>
-              <div style={{ fontSize:24, fontWeight:900, marginBottom:8 }}>{foodResult.main.name}</div>
-              <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.5 }}>{foodResult.main.summary}</div>
-              <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:16, flexWrap:"wrap" }}>
-                {foodResult.main.tags?.map(tag => (
-                  <span key={tag} style={{
-                    padding:"4px 10px", borderRadius:100, fontSize:11, fontWeight:600,
-                    background:"rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)"
-                  }}>#{tag}</span>
-                ))}
+            {/* 메인 추천 카드 (뒤집기) */}
+            <div style={{ perspective:"800px", marginBottom:16, cursor:"pointer" }} onClick={() => toggleFoodFlip(foodResult.main.id)}>
+              <div style={{
+                transformStyle:"preserve-3d", transition:"transform 0.5s cubic-bezier(0.4,0,0.2,1)",
+                transform: flippedFoods.has(foodResult.main.id) ? "rotateY(180deg)" : "rotateY(0deg)",
+                position:"relative", minHeight:200
+              }}>
+                {/* 앞면 */}
+                <div style={{
+                  position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
+                  background:"#191919", borderRadius:24, padding:"28px 24px",
+                  textAlign:"center", color:"#fff"
+                }}>
+                  <div style={{ fontSize:56, marginBottom:12 }}>{foodResult.main.emoji}</div>
+                  <div style={{ fontSize:24, fontWeight:900, marginBottom:8 }}>{foodResult.main.name}</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.5 }}>{foodResult.main.summary}</div>
+                  <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:16, flexWrap:"wrap" }}>
+                    {foodResult.main.tags?.map(tag => (
+                      <span key={tag} style={{
+                        padding:"4px 10px", borderRadius:100, fontSize:11, fontWeight:600,
+                        background:"rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)"
+                      }}>#{tag}</span>
+                    ))}
+                  </div>
+                </div>
+                {/* 뒷면 (상식) */}
+                <div style={{
+                  position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
+                  transform:"rotateY(180deg)",
+                  background:"#191919", borderRadius:24, padding:"28px 24px",
+                  textAlign:"center", color:"#fff"
+                }}>
+                  <div style={{ fontSize:36, marginBottom:12 }}>💡</div>
+                  <div style={{ fontSize:18, fontWeight:900, marginBottom:12 }}>{foodResult.main.name} 상식</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.85)", lineHeight:1.7 }}>{foodResult.main.trivia}</div>
+                </div>
               </div>
             </div>
 
+            {/* 대안 카드 (뒤집기) */}
             {foodResult.alternatives.length > 0 && (
               <div style={{ marginBottom:20 }}>
                 <div style={{ fontSize:13, fontWeight:700, color:"#999", marginBottom:10 }}>이것도 괜찮아</div>
                 <div style={{ display:"flex", gap:10 }}>
                   {foodResult.alternatives.map(alt => (
-                    <div key={alt.id} style={{
-                      flex:1, background:"#fff", borderRadius:16, padding:"16px 12px",
-                      textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
-                    }}>
-                      <div style={{ fontSize:32, marginBottom:6 }}>{alt.emoji}</div>
-                      <div style={{ fontSize:14, fontWeight:700, marginBottom:4 }}>{alt.name}</div>
-                      <div style={{ fontSize:11, color:"#aaa", lineHeight:1.4 }}>{alt.summary}</div>
+                    <div key={alt.id} style={{ flex:1, perspective:"600px", cursor:"pointer" }} onClick={() => toggleFoodFlip(alt.id)}>
+                      <div style={{
+                        transformStyle:"preserve-3d", transition:"transform 0.5s cubic-bezier(0.4,0,0.2,1)",
+                        transform: flippedFoods.has(alt.id) ? "rotateY(180deg)" : "rotateY(0deg)",
+                        position:"relative", minHeight:160
+                      }}>
+                        <div style={{
+                          position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
+                          background:"#fff", borderRadius:16, padding:"16px 12px",
+                          textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
+                        }}>
+                          <div style={{ fontSize:32, marginBottom:6 }}>{alt.emoji}</div>
+                          <div style={{ fontSize:14, fontWeight:700, marginBottom:4 }}>{alt.name}</div>
+                          <div style={{ fontSize:11, color:"#aaa", lineHeight:1.4 }}>{alt.summary}</div>
+                        </div>
+                        <div style={{
+                          position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
+                          transform:"rotateY(180deg)",
+                          background:"#F5F3EE", borderRadius:16, padding:"16px 12px",
+                          textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
+                        }}>
+                          <div style={{ fontSize:20, marginBottom:6 }}>💡</div>
+                          <div style={{ fontSize:12, fontWeight:700, marginBottom:6 }}>{alt.name}</div>
+                          <div style={{ fontSize:11, color:"#666", lineHeight:1.5 }}>{alt.trivia}</div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1195,18 +1242,35 @@ export default function VibeApp() {
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"
             }}>
               {spinDisplay ? (<>
-                <div style={{ fontSize:64, marginBottom:12, transition: spinning ? "none" : "transform 0.3s", transform: !spinning ? "scale(1.1)" : "scale(1)" }}>{spinDisplay.emoji}</div>
-                <div style={{ fontSize:22, fontWeight:900, color: spinning ? "#ccc" : "#191919" }}>{spinDisplay.name}</div>
-                {!spinning && rouletteFood && (
-                  <div style={{ fontSize:13, color:"#999", marginTop:8, lineHeight:1.5, padding:"0 12px" }}>{rouletteFood.summary}</div>
-                )}
-                {!spinning && rouletteFood?.tags && (
-                  <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:12, flexWrap:"wrap" }}>
-                    {rouletteFood.tags.map(tag => (
-                      <span key={tag} style={{ padding:"3px 8px", borderRadius:100, fontSize:10, fontWeight:600, background:"#F0EDE8", color:"#888" }}>#{tag}</span>
-                    ))}
+                {spinning ? (<>
+                  <div style={{ fontSize:64, marginBottom:12 }}>{spinDisplay.emoji}</div>
+                  <div style={{ fontSize:22, fontWeight:900, color:"#ccc" }}>{spinDisplay.name}</div>
+                </>) : rouletteFood ? (
+                  <div style={{ perspective:"600px", width:"100%", cursor:"pointer" }} onClick={() => toggleFoodFlip(rouletteFood.id)}>
+                    <div style={{
+                      transformStyle:"preserve-3d", transition:"transform 0.5s cubic-bezier(0.4,0,0.2,1)",
+                      transform: flippedFoods.has(rouletteFood.id) ? "rotateY(180deg)" : "rotateY(0deg)",
+                      position:"relative", minHeight:140
+                    }}>
+                      <div style={{ position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden", textAlign:"center" }}>
+                        <div style={{ fontSize:64, marginBottom:12, transform:"scale(1.1)" }}>{rouletteFood.emoji}</div>
+                        <div style={{ fontSize:22, fontWeight:900 }}>{rouletteFood.name}</div>
+                        <div style={{ fontSize:13, color:"#999", marginTop:8, lineHeight:1.5, padding:"0 12px" }}>{rouletteFood.summary}</div>
+                        <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:12, flexWrap:"wrap" }}>
+                          {rouletteFood.tags?.map(tag => (
+                            <span key={tag} style={{ padding:"3px 8px", borderRadius:100, fontSize:10, fontWeight:600, background:"#F0EDE8", color:"#888" }}>#{tag}</span>
+                          ))}
+                        </div>
+                        <div style={{ fontSize:11, color:"#ccc", marginTop:10 }}>탭해서 상식 보기</div>
+                      </div>
+                      <div style={{ position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden", transform:"rotateY(180deg)", textAlign:"center" }}>
+                        <div style={{ fontSize:36, marginBottom:8 }}>💡</div>
+                        <div style={{ fontSize:16, fontWeight:900, marginBottom:10 }}>{rouletteFood.name} 상식</div>
+                        <div style={{ fontSize:13, color:"#666", lineHeight:1.7, padding:"0 8px" }}>{rouletteFood.trivia}</div>
+                      </div>
+                    </div>
                   </div>
-                )}
+                ) : null}
               </>) : (
                 <div style={{ fontSize:18, color:"#ccc", fontWeight:600 }}>카테고리 고르고 돌려!</div>
               )}

@@ -85,7 +85,9 @@ export function scoreActivity(activity, prefs) {
 // 코스의 핵심 활동 = anchor. 시간이 충분하고 점수가 높은 활동
 export function getAnchorCandidates(activities, prefs, remainingMinutes) {
   const minAnchorTime = 20;
-  const maxAnchorTime = remainingMinutes * 0.6; // 전체 시간의 60% 이하
+  // 시간이 길면 앵커 비율 여유 있게 (6시간+ → 40%, 4시간 → 50%, 2시간 → 60%)
+  const anchorRatio = remainingMinutes >= 360 ? 0.4 : remainingMinutes >= 240 ? 0.5 : 0.6;
+  const maxAnchorTime = remainingMinutes * anchorRatio;
 
   const candidates = activities
     .filter((a) => {
@@ -138,11 +140,18 @@ export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0,
   // tidy 과다 방지: 정리/청소는 최대 1개
   if (next.genre === "tidy" && plan.some((a) => a.genre === "tidy")) return false;
 
-  // 캠핑 코스: 캠핑과 안 어울리는 실내 활동 차단
-  if (plan.some((a) => a.genre === "camp")) {
+  // 실내/자기관리 ↔ 캠핑/야외 코스 혼합 방지 (양방향)
+  const indoorOnly = ["beauty", "tidy", "digital"];
+  const outdoorOnly = ["camp"];
+  const planHasIndoor = plan.some((a) => indoorOnly.includes(a.genre));
+  const planHasOutdoor = plan.some((a) => outdoorOnly.includes(a.genre));
+  if (planHasIndoor && outdoorOnly.includes(next.genre)) return false;
+  if (planHasOutdoor) {
     const campOk = ["camp", "cooking", "food", "nature", "social"];
     if (!campOk.includes(next.genre)) return false;
   }
+  // 반대도: 캠핑 다음에 실내 자기관리 안 됨
+  if (indoorOnly.includes(next.genre) && plan.some((a) => outdoorOnly.includes(a.genre))) return false;
 
   // 장시간 활동(4시간+) 뒤에는 최대 1개 추가만
   if (plan.some((a) => (a.duration || a.time || 30) >= 240) && plan.length >= 2) return false;
@@ -179,6 +188,12 @@ function connectionScore(prev, next) {
     const commonVibes = prev.vibe.filter((v) => next.vibe.includes(v)).length;
     score += Math.min(commonVibes, 2); // 최대 +2
   }
+
+  // 계획/준비 활동이 실행 활동 뒤에 오면 감점 (순서가 반대)
+  const prepKeywords = ["계획", "준비", "리스트", "세팅"];
+  const nextIsPrep = prepKeywords.some((k) => next.name?.includes(k));
+  const prevIsAction = !prepKeywords.some((k) => prev.name?.includes(k));
+  if (nextIsPrep && prevIsAction && prev.genre === next.genre) score -= 5;
 
   return score;
 }
@@ -335,7 +350,8 @@ function dedupePlans(plans) {
 // championId: 토너먼트 우승자 ID (있으면 첫 번째 코스에 강제 포함)
 export function buildCoursePlans(activities, prefs, championId) {
   const totalMinutes = (prefs.hours || 2) * 60;
-  const maxActivitiesPerCourse = 4;
+  // 시간 예산에 따라 활동 수 조절 (긴 시간이면 더 많은 활동)
+  const maxActivitiesPerCourse = totalMinutes >= 360 ? 7 : totalMinutes >= 240 ? 6 : totalMinutes >= 180 ? 5 : 4;
 
   // 챔피언 활동 찾기
   const champion = championId ? activities.find((a) => a.id === championId) : null;
