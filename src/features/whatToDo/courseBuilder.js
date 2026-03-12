@@ -298,19 +298,20 @@ export function generatePlanReason(plan, prefs) {
   return `${first.emoji} ${first.name}(으)로 시작하면 지금 원하는 ${moodText}를 자연스럽게 만들 수 있고, ${last.emoji} ${last.name}까지 이어지면서 약 ${totalMinutes}분 정도를 알차게 보낼 수 있어.`;
 }
 
-// ── 코스 중복 제거 ──
+// ── 코스 중복 제거 (50% 이상 겹치면 제거) ──
 function dedupePlans(plans) {
-  const seen = new Set();
-  return plans.filter((plan) => {
-    // 각 코스의 활동 ID를 정렬한 키로 중복 체크
-    const key = plan
-      .map((a) => a.id)
-      .sort()
-      .join(",");
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const result = [];
+  for (const plan of plans) {
+    const ids = new Set(plan.map((a) => a.id));
+    const isDup = result.some((existing) => {
+      const existIds = new Set(existing.map((a) => a.id));
+      const overlap = [...ids].filter((id) => existIds.has(id)).length;
+      const minLen = Math.min(ids.size, existIds.size);
+      return overlap >= Math.ceil(minLen * 0.5); // 50% 이상 겹치면 중복
+    });
+    if (!isDup) result.push(plan);
+  }
+  return result;
 }
 
 // ── 메인 함수: 코스 3개 조립 ──
@@ -349,13 +350,33 @@ export function buildCoursePlans(activities, prefs, championId) {
     }));
   }
 
-  // 상위 3개 anchor로 코스 생성 (6개 중에서 최대한 다양하게)
-  const selectedAnchors = anchors.slice(0, Math.min(3, anchors.length));
+  // anchor 다양성: 같은 장르 anchor 연속 방지
+  const selectedAnchors = [];
+  const usedGenres = new Set();
+  // 1순위: 장르가 다른 anchor들
+  for (const a of anchors) {
+    if (selectedAnchors.length >= 5) break;
+    if (!usedGenres.has(a.genre)) {
+      selectedAnchors.push(a);
+      usedGenres.add(a.genre);
+    }
+  }
+  // 부족하면 장르 중복이라도 추가
+  for (const a of anchors) {
+    if (selectedAnchors.length >= 5) break;
+    if (!selectedAnchors.find((s) => s.id === a.id)) {
+      selectedAnchors.push(a);
+    }
+  }
+
   const rawPlans = [];
+  // 코스 간 활동 중복 방지: 이전 코스에서 쓴 활동 ID 추적
+  const globalUsedIds = new Set();
 
   for (const anchor of selectedAnchors) {
     const plan = [anchor];
-    const usedIds = new Set([anchor.id]);
+    // 해당 코스 내 중복 방지 + 이전 코스 활동 회피
+    const usedIds = new Set([anchor.id, ...globalUsedIds]);
     let remaining = totalMinutes - (anchor.duration || anchor.time || 30);
     let weirdCount = anchor.rarity === "weird" ? 1 : 0;
 
@@ -380,37 +401,8 @@ export function buildCoursePlans(activities, prefs, championId) {
     }
 
     rawPlans.push(plan);
-  }
-
-  // anchor가 3개 미만이면 추가 시도: 다른 anchor 조합
-  if (rawPlans.length < 3 && anchors.length > 3) {
-    for (let i = 3; i < anchors.length && rawPlans.length < 3; i++) {
-      const anchor = anchors[i];
-      const plan = [anchor];
-      const usedIds = new Set([anchor.id]);
-      let remaining = totalMinutes - (anchor.duration || anchor.time || 30);
-      let weirdCount = anchor.rarity === "weird" ? 1 : 0;
-
-      while (plan.length < maxActivitiesPerCourse && remaining >= 15) {
-        const prev = plan[plan.length - 1];
-        const next = pickNextActivity(
-          activities,
-          prev,
-          prefs,
-          usedIds,
-          remaining,
-          null,
-          weirdCount
-        );
-        if (!next) break;
-        plan.push(next);
-        usedIds.add(next.id);
-        remaining -= next.duration || next.time || 30;
-        if (next.rarity === "weird") weirdCount++;
-      }
-
-      rawPlans.push(plan);
-    }
+    // 이 코스의 활동들을 글로벌에 등록 → 다음 코스에서 회피
+    plan.forEach((a) => globalUsedIds.add(a.id));
   }
 
   // 중복 제거
