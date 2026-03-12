@@ -70,11 +70,7 @@ export const activities = [
     budget: [
       "무료"
     ],
-    timeSlots: [
-      "morning",
-      "afternoon",
-      "evening"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy",
@@ -859,9 +855,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -1204,9 +1198,7 @@ export const activities = [
     budget: [
       "무료"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy",
@@ -1825,9 +1817,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["afternoon", "evening"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -2976,9 +2966,7 @@ export const activities = [
     budget: [
       "무료"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy",
@@ -4225,9 +4213,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -4311,9 +4297,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -4486,9 +4470,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -4922,9 +4904,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -5094,9 +5074,7 @@ export const activities = [
       "무료",
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -5534,9 +5512,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -5624,9 +5600,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -5712,9 +5686,7 @@ export const activities = [
     budget: [
       "무료"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -5887,9 +5859,7 @@ export const activities = [
     budget: [
       "무료"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6063,9 +6033,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6151,9 +6119,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6239,9 +6205,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6325,9 +6289,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6411,9 +6373,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6501,9 +6461,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6583,9 +6541,7 @@ export const activities = [
     budget: [
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6669,9 +6625,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6755,9 +6709,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -6922,9 +6874,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -7094,9 +7044,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -8233,9 +8181,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -8316,9 +8262,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -8398,9 +8342,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -9632,9 +9574,7 @@ export const activities = [
     budget: [
       "무료"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy",
@@ -13225,9 +13165,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -13311,9 +13249,7 @@ export const activities = [
       "무료",
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -13395,9 +13331,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -13478,9 +13412,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -13566,9 +13498,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -13654,9 +13584,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -13925,9 +13853,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -15168,9 +15094,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -15585,9 +15509,7 @@ export const activities = [
     budget: [
       "조금"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon", "evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -16626,9 +16548,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["evening", "night"],
     weatherFit: [
       "sunny",
       "cloudy"
@@ -16716,9 +16636,7 @@ export const activities = [
       "조금",
       "상관없어"
     ],
-    timeSlots: [
-      "afternoon"
-    ],
+    timeSlots: ["morning", "afternoon"],
     weatherFit: [
       "sunny",
       "cloudy"
