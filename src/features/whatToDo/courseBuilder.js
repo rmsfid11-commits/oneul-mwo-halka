@@ -95,8 +95,22 @@ export function getAnchorCandidates(activities, prefs, remainingMinutes) {
   return candidates.slice(0, 6).map((c) => c.activity);
 }
 
+// ── 유사 장르 그룹 (같은 그룹 내 장르가 코스에 과다하면 지루함) ──
+const SIMILAR_GROUPS = [
+  ["culture", "learn", "digital"],     // 수동 소비 (화면/읽기)
+  ["healing", "beauty", "relax"],      // 힐링/자기관리
+  ["sport", "fitness", "cycling", "move"], // 운동/활동
+  ["cooking", "food"],                 // 음식 관련
+];
+
+function countGroupGenres(plan, genre) {
+  const group = SIMILAR_GROUPS.find((g) => g.includes(genre));
+  if (!group) return 0;
+  return plan.filter((a) => group.includes(a.genre)).length;
+}
+
 // ── 연결 호환성 체크 ──
-export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0) {
+export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0, plan = []) {
   // 중복 방지
   if (usedIds.has(next.id)) return false;
 
@@ -107,11 +121,17 @@ export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0)
   // 최소 15분
   if (nextTime < 15) return false;
 
-  // 같은 장르 연속 피하기 (완전 동일 장르)
+  // 같은 장르 연속 피하기
   if (prev.genre === next.genre) return false;
 
-  // weird 활동은 코스당 최대 1개 (의외성은 1개여야 빛남)
+  // weird 활동은 코스당 최대 1개
   if (next.rarity === "weird" && weirdCount >= 1) return false;
+
+  // 유사 장르 과다 방지: 같은 그룹에서 2개 이상이면 차단
+  if (countGroupGenres(plan, next.genre) >= 2) return false;
+
+  // tidy 과다 방지: 정리/청소는 최대 1개
+  if (next.genre === "tidy" && plan.some((a) => a.genre === "tidy")) return false;
 
   return true;
 }
@@ -157,10 +177,11 @@ export function pickNextActivity(
   usedIds,
   remainingMinutes,
   allowedRoles,
-  weirdCount = 0
+  weirdCount = 0,
+  plan = []
 ) {
   const candidates = allActivities
-    .filter((a) => canFollow(prev, a, usedIds, remainingMinutes, weirdCount))
+    .filter((a) => canFollow(prev, a, usedIds, remainingMinutes, weirdCount, plan))
     .map((a) => {
       const base = scoreActivity(a, prefs);
       const conn = connectionScore(prev, a);
@@ -183,119 +204,101 @@ export function pickNextActivity(
   return candidates[0]?.activity || null;
 }
 
-// ── 코스 제목 생성 ──
+// ── 코스 제목 생성 (코스마다 다른 제목) ──
 export function generatePlanTitle(plan, prefs, courseIndex = 0) {
   const genres = plan.map((a) => a.genre);
   const hasGenre = (g) => genres.includes(g);
   const isHome = prefs.location === "home";
   const need = prefs.need;
-  const firstName = plan[0]?.name || "";
+  const first = plan[0];
+  const pick = (arr) => arr[courseIndex % arr.length]; // 코스별로 다른 제목
 
-  // 낚시 포함
+  // 낚시
   if (hasGenre("water") && plan.some((a) => a.name?.includes("낚시"))) {
-    return "물 위에서 여유 부리는 코스";
+    return pick(["물 위에서 여유 부리는 코스", `${first.name}부터 시작하는 물멍 코스`, "낚시하고 느긋하게 마무리"]);
   }
-
-  // 수상 스포츠 포함
+  // 수상
   if (hasGenre("water")) {
-    return "물놀이하고 개운하게 마무리하는 코스";
+    return pick(["물놀이하고 개운하게 마무리", `${first.name}(으)로 시작하는 물놀이 코스`, "시원하게 놀고 쉬는 코스"]);
   }
-
-  // 등산/클라이밍
+  // 등산
   if (hasGenre("mountain")) {
-    return "땀 좀 흘리고 산 공기 마시는 코스";
+    return pick(["땀 좀 흘리고 산 공기 마시기", `${first.name}부터 시작하는 야외 코스`, "산에서 내려와서 쉬는 코스"]);
   }
-
   // 캠핑
   if (hasGenre("camp")) {
-    return "자연 속에서 느긋하게 보내는 코스";
+    return pick(["자연 속에서 느긋하게", `${first.name}(으)로 시작하는 캠핑 코스`, "밖에서 느리게 보내는 하루"]);
   }
-
   // 반려견
   if (hasGenre("pet")) {
-    return "우리 강아지랑 함께하는 코스";
+    return pick(["우리 강아지랑 함께하는 코스", `${first.name}부터 시작하는 댕댕이 코스`, "강아지랑 같이 보내는 하루"]);
   }
-
-  // 운동 포함
+  // 운동
   if (hasGenre("fitness") || hasGenre("sport") || hasGenre("move") || hasGenre("cycling")) {
-    return "몸 좀 쓰고 개운하게 마무리하는 코스";
+    return pick(["몸 좀 쓰고 개운하게 마무리", `${first.name}부터 시작하는 활동 코스`, "움직이고 리프레시하는 코스"]);
   }
-
-  // 카페 + 산책 조합
-  if (
-    plan.some((a) => a.name?.includes("카페")) &&
-    plan.some((a) => a.name?.includes("산책") || a.genre === "nature")
-  ) {
-    return "잔잔하게 바깥 공기까지 챙기는 코스";
+  // 카페 + 산책
+  if (plan.some((a) => a.name?.includes("카페")) && plan.some((a) => a.name?.includes("산책") || a.genre === "nature")) {
+    return pick(["잔잔하게 바깥 공기까지 챙기기", "카페 한 잔 하고 산책까지", "느긋하게 걷고 쉬는 코스"]);
   }
-
   // 집 위주
   if (isHome || genres.every((g) => ["healing", "culture", "art", "digital", "cooking", "tidy", "beauty", "relax"].includes(g))) {
-    if (need === "멍때리기") return "아무것도 안 하면서 쉬어가는 코스";
-    if (hasGenre("tidy")) return "소소하게 정리하면서 보내는 코스";
-    if (hasGenre("beauty") || hasGenre("relax")) return "나를 위해 가꾸고 쉬는 코스";
-    return "무리 없이 집 중심으로 쉬어가는 코스";
+    if (hasGenre("tidy")) return pick(["소소하게 정리하면서 보내기", `${first.name}부터 시작하는 정리 코스`, "깔끔하게 정리하고 쉬는 코스"]);
+    if (hasGenre("beauty") || hasGenre("relax")) return pick(["나를 위해 가꾸고 쉬기", `${first.name}부터 시작하는 힐링 코스`, "오늘은 나한테 잘해주는 날"]);
+    if (hasGenre("cooking")) return pick(["집에서 먹고 쉬는 코스", `${first.name}부터 시작하는 집콕 코스`, "맛있는 거 만들고 느긋하게"]);
+    if (need === "멍때리기") return pick(["아무것도 안 하면서 쉬어가기", "그냥 뒹굴거리는 코스", "오늘은 누워있는 게 정답"]);
+    return pick(["무리 없이 집에서 보내기", `${first.name}(으)로 시작하는 집콕 코스`, "집 안에서 알차게 보내는 코스"]);
   }
-
-  // 먹기 포함
+  // 먹기
   if (hasGenre("cooking") || hasGenre("food")) {
-    return "먹고 즐기고 쉬는 풀코스";
+    return pick(["먹고 즐기고 쉬는 풀코스", `${first.name}부터 시작하는 맛있는 코스`, "오늘은 맛있는 걸로 채우기"]);
   }
-
-  // 자연 / 여행
+  // 자연/여행
   if (hasGenre("nature") || hasGenre("travel")) {
-    return "바깥 공기 마시며 리프레시하는 코스";
+    return pick(["바깥 공기 마시며 리프레시", `${first.name}부터 시작하는 외출 코스`, "나가서 기분 전환하는 코스"]);
   }
-
-  // 감성 위주
+  // 감성
   if (hasGenre("art") || hasGenre("craft") || plan.some((a) => a.vibe?.includes("감성충전"))) {
-    return "감성 흐름으로 이어지는 코스";
+    return pick(["감성 흐름으로 이어지는 코스", `${first.name}부터 시작하는 감성 코스`, "감각적으로 채우는 하루"]);
   }
-
   // 문화
   if (hasGenre("culture") || hasGenre("learn")) {
-    return "머리도 쓰고 즐기기도 하는 코스";
+    return pick(["머리도 쓰고 즐기기도 하는 코스", `${first.name}부터 시작하는 충전 코스`, "재밌는 거 보고 생각하는 코스"]);
   }
-
   // 사교
   if (hasGenre("social")) {
-    return "사람 만나고 놀면서 푸는 코스";
+    return pick(["사람 만나고 놀면서 푸는 코스", `${first.name}부터 시작하는 놀기 코스`, "같이 놀고 풀어지는 코스"]);
   }
+  // need 기반 fallback
+  const needTitles = {
+    "힐링": ["오늘은 나를 위해 쉬어가기", "편하게 쉬는 게 정답인 날", "천천히 쉬어가는 코스"],
+    "성취감": ["뭔가 해낸 느낌으로 마무리", "오늘 좀 뿌듯하게 끝내는 코스", "작지만 확실한 성취 코스"],
+    "자극": ["좀 색다르게 움직여보는 코스", "오늘은 좀 다르게 보내기", "새로운 자극 충전 코스"],
+    "멍때리기": ["그냥 흘러가는 대로 보내기", "오늘은 아무것도 안 해도 돼", "멍때리기 전문 코스"],
+  };
+  if (need && needTitles[need]) return pick(needTitles[need]);
 
-  // 기본: need 기반
-  if (need === "힐링") return "오늘은 나를 위해 쉬어가는 코스";
-  if (need === "성취감") return "뭔가 해낸 느낌으로 마무리하는 코스";
-  if (need === "자극") return "좀 색다르게 움직여보는 코스";
-  if (need === "멍때리기") return "그냥 흘러가는 대로 보내는 코스";
-
-  // 최종 fallback: 코스별로 다른 제목
-  const fallbacks = ["오늘 하루를 채워줄 코스", "이런 흐름도 괜찮을 거야", "가볍게 이렇게 보내봐"];
-  return fallbacks[courseIndex % fallbacks.length];
+  // 최종 fallback
+  return pick([`${first.name}(으)로 시작하는 코스`, "오늘 이렇게 보내봐", "이런 흐름 어때?"]);
 }
 
-// ── 코스 추천 이유 생성 ──
+// ── 코스 추천 이유 생성 (가벼운 톤) ──
 export function generatePlanReason(plan, prefs) {
   if (!plan || plan.length === 0) return "";
 
   const first = plan[0];
+  const last = plan[plan.length - 1];
   const totalMinutes = plan.reduce((sum, a) => sum + (a.duration || a.time || 30), 0);
-  const need = prefs.need;
-
-  // need에 따른 분위기 표현
-  const moodMap = {
-    "힐링": "편안한 분위기",
-    "성취감": "뿌듯한 느낌",
-    "자극": "새로운 자극",
-    "멍때리기": "아무 생각 없는 시간",
-  };
-  const moodText = moodMap[need] || "원하는 분위기";
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  const timeText = hours > 0 ? `${hours}시간${mins > 0 ? ` ${mins}분` : ""}` : `${mins}분`;
 
   if (plan.length === 1) {
-    return `${first.emoji} ${first.name}만으로도 ${moodText}를 충분히 느낄 수 있어. 약 ${totalMinutes}분이면 딱이야.`;
+    return `${first.emoji} ${first.name} 하나면 ${timeText} 금방이야.`;
   }
 
-  const last = plan[plan.length - 1];
-  return `${first.emoji} ${first.name}(으)로 시작하면 지금 원하는 ${moodText}를 자연스럽게 만들 수 있고, ${last.emoji} ${last.name}까지 이어지면서 약 ${totalMinutes}분 정도를 알차게 보낼 수 있어.`;
+  // 짧은 설명: 첫 활동 → 마지막 활동, 시간
+  return `${first.emoji} ${first.name}에서 시작해서 ${last.emoji} ${last.name}까지, 약 ${timeText} 코스야.`;
 }
 
 // ── 코스 중복 제거 (50% 이상 겹치면 제거) ──
@@ -390,7 +393,8 @@ export function buildCoursePlans(activities, prefs, championId) {
         usedIds,
         remaining,
         null,
-        weirdCount
+        weirdCount,
+        plan
       );
       if (!next) break;
 
