@@ -1242,35 +1242,27 @@ export default function VibeApp() {
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"
             }}>
               {spinDisplay ? (<>
-                {spinning ? (<>
-                  <div style={{ fontSize:64, marginBottom:12 }}>{spinDisplay.emoji}</div>
-                  <div style={{ fontSize:22, fontWeight:900, color:"#ccc" }}>{spinDisplay.name}</div>
-                </>) : rouletteFood ? (
-                  <div style={{ perspective:"600px", width:"100%", cursor:"pointer" }} onClick={() => toggleFoodFlip(rouletteFood.id)}>
-                    <div style={{
-                      transformStyle:"preserve-3d", transition:"transform 0.5s cubic-bezier(0.4,0,0.2,1)",
-                      transform: flippedFoods.has(rouletteFood.id) ? "rotateY(180deg)" : "rotateY(0deg)",
-                      position:"relative", minHeight:140
-                    }}>
-                      <div style={{ position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden", textAlign:"center" }}>
-                        <div style={{ fontSize:64, marginBottom:12, transform:"scale(1.1)" }}>{rouletteFood.emoji}</div>
-                        <div style={{ fontSize:22, fontWeight:900 }}>{rouletteFood.name}</div>
-                        <div style={{ fontSize:13, color:"#999", marginTop:8, lineHeight:1.5, padding:"0 12px" }}>{rouletteFood.summary}</div>
-                        <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:12, flexWrap:"wrap" }}>
-                          {rouletteFood.tags?.map(tag => (
-                            <span key={tag} style={{ padding:"3px 8px", borderRadius:100, fontSize:10, fontWeight:600, background:"#F0EDE8", color:"#888" }}>#{tag}</span>
-                          ))}
-                        </div>
-                        <div style={{ fontSize:11, color:"#ccc", marginTop:10 }}>탭해서 상식 보기</div>
-                      </div>
-                      <div style={{ position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden", transform:"rotateY(180deg)", textAlign:"center" }}>
-                        <div style={{ fontSize:36, marginBottom:8 }}>💡</div>
-                        <div style={{ fontSize:16, fontWeight:900, marginBottom:10 }}>{rouletteFood.name} 상식</div>
-                        <div style={{ fontSize:13, color:"#666", lineHeight:1.7, padding:"0 8px" }}>{rouletteFood.trivia}</div>
-                      </div>
+                <div style={{ fontSize:64, marginBottom:12, transition: spinning ? "none" : "transform 0.3s", transform: !spinning ? "scale(1.1)" : "scale(1)" }}>{spinDisplay.emoji}</div>
+                <div style={{ fontSize:22, fontWeight:900, color: spinning ? "#ccc" : "#191919" }}>{spinDisplay.name}</div>
+                {!spinning && rouletteFood && (<>
+                  {/* 앞면/뒷면 토글 */}
+                  {!flippedFoods.has(rouletteFood.id) ? (<>
+                    <div style={{ fontSize:13, color:"#999", marginTop:8, lineHeight:1.5, padding:"0 12px" }}>{rouletteFood.summary}</div>
+                    <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:12, flexWrap:"wrap", padding:"0 8px" }}>
+                      {rouletteFood.tags?.map(tag => (
+                        <span key={tag} style={{ padding:"3px 8px", borderRadius:100, fontSize:10, fontWeight:600, background:"#F0EDE8", color:"#888" }}>#{tag}</span>
+                      ))}
                     </div>
-                  </div>
-                ) : null}
+                  </>) : (<>
+                    <div style={{ fontSize:13, color:"#666", marginTop:12, lineHeight:1.7, padding:"0 12px" }}>💡 {rouletteFood.trivia}</div>
+                  </>)}
+                  <button onClick={(e) => { e.stopPropagation(); toggleFoodFlip(rouletteFood.id); }} style={{
+                    marginTop:12, background:"#F0EDE8", border:"none", borderRadius:100,
+                    padding:"4px 14px", fontSize:11, fontWeight:600, color:"#888", cursor:"pointer", fontFamily:"inherit"
+                  }}>
+                    {flippedFoods.has(rouletteFood.id) ? "설명 보기" : "💡 상식 보기"}
+                  </button>
+                </>)}
               </>) : (
                 <div style={{ fontSize:18, color:"#ccc", fontWeight:600 }}>카테고리 고르고 돌려!</div>
               )}

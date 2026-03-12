@@ -150,8 +150,28 @@ export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0,
     const campOk = ["camp", "cooking", "food", "nature", "social"];
     if (!campOk.includes(next.genre)) return false;
   }
-  // 반대도: 캠핑 다음에 실내 자기관리 안 됨
-  if (indoorOnly.includes(next.genre) && plan.some((a) => outdoorOnly.includes(a.genre))) return false;
+  if (indoorOnly.includes(next.genre) && planHasOutdoor) return false;
+
+  // ★ 공간 흐름 규칙: 실내→실외 전환은 최대 1회 (나갔으면 안 들어오고, 들어왔으면 안 나감)
+  const getSpace = (a) => {
+    const loc = a.tags?.location || [];
+    if (loc.includes("home") && !loc.includes("out")) return "indoor";
+    if (loc.includes("out") && !loc.includes("home")) return "outdoor";
+    return "both"; // 둘 다 가능한 활동은 유연
+  };
+  const nextSpace = getSpace(next);
+  if (nextSpace !== "both" && plan.length >= 2) {
+    const spaces = plan.map(getSpace).filter((s) => s !== "both");
+    if (spaces.length >= 2) {
+      const lastSpace = spaces[spaces.length - 1];
+      // 이미 전환이 1번 있었으면 추가 전환 금지
+      let transitions = 0;
+      for (let i = 1; i < spaces.length; i++) {
+        if (spaces[i] !== spaces[i - 1]) transitions++;
+      }
+      if (transitions >= 1 && nextSpace !== lastSpace) return false;
+    }
+  }
 
   // 장시간 활동(4시간+) 뒤에는 최대 1개 추가만
   if (plan.some((a) => (a.duration || a.time || 30) >= 240) && plan.length >= 2) return false;
