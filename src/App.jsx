@@ -4,6 +4,7 @@ import { buildCoursePlans } from './features/whatToDo/courseBuilder.js';
 import { foods } from './data/foods.js';
 import { recommendFood } from './features/whatToEat/engine.js';
 import { places } from './data/places.js';
+import { supabase } from './lib/supabase.js';
 
 const S = {
   screen: { maxWidth:480, margin:"0 auto", padding:"24px 20px 80px" },
@@ -317,21 +318,23 @@ export default function VibeApp() {
     { id:"boring", emoji:"😴", label:"재미없어 보여" },
     { id:"other", emoji:"🤔", label:"기타" },
   ];
-  function sendFeedback(reasonId) {
+  async function sendFeedback(reasonId) {
     if (!selectedCourse) return;
     const report = {
-      ts: new Date().toISOString(),
       reason: reasonId,
-      course: {
-        title: selectedCourse.title,
-        activities: mySchedule.map(a => ({ id:a.id, name:a.name, genre:a.genre, duration:a.duration||a.time })),
-        totalMin: mySchedule.reduce((s,a) => s + (a.duration||a.time), 0),
-      },
-      answers: { need:answers.need, alone:answers.alone, location:answers.location, cost:answers.cost, hours:answers.hours },
+      course_title: selectedCourse.title,
+      activities: mySchedule.map(a => ({ id:a.id, name:a.name, genre:a.genre, duration:a.duration||a.time })),
+      total_minutes: mySchedule.reduce((s,a) => s + (a.duration||a.time), 0),
+      user_answers: { need:answers.need, alone:answers.alone, location:answers.location, cost:answers.cost, hours:answers.hours },
     };
-    const saved = JSON.parse(localStorage.getItem("course_feedback") || "[]");
-    saved.push(report);
-    localStorage.setItem("course_feedback", JSON.stringify(saved));
+    // Supabase에 저장 시도, 실패하면 localStorage 폴백
+    try {
+      await supabase.from("course_feedback").insert(report);
+    } catch {
+      const saved = JSON.parse(localStorage.getItem("course_feedback") || "[]");
+      saved.push({ ...report, ts: new Date().toISOString() });
+      localStorage.setItem("course_feedback", JSON.stringify(saved));
+    }
     setFeedbackSent(true);
     setTimeout(() => { setFeedbackSent(false); setFeedbackOpen(false); }, 1500);
   }
