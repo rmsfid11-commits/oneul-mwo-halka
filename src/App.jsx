@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { activities as ACTIVITIES } from './data/activities.js';
 import { buildCoursePlans } from './features/whatToDo/courseBuilder.js';
 import { foods } from './data/foods.js';
+import { recommendFood } from './features/whatToEat/engine.js';
 import { places } from './data/places.js';
 
 const S = {
@@ -92,6 +93,63 @@ const QUESTIONS = [
 
 
 
+// ─── 계절 필터 ────────────────────────────────────────────
+const SEASONAL_ACTIVITIES = {
+  150: [12, 1, 2],     // 눈 오는 날 산책 → 겨울
+  74: [5, 6, 7, 8, 9], // 스노클링 → 여름
+  78: [5, 6, 7, 8, 9], // 수상 스키 / 웨이크보드 → 여름
+  79: [5, 6, 7, 8, 9], // 래프팅 → 여름
+};
+
+// ─── 음식 추천 질문 ────────────────────────────────────────
+const FOOD_QUESTIONS = [
+  {
+    id: "mood", label: "지금 뭐가 먹고 싶어?",
+    options: [
+      { value: "든든", label: "🍖 든든하게" },
+      { value: "가벼운", label: "🥗 가볍게" },
+      { value: "자극적", label: "🌶️ 매콤 자극" },
+      { value: "위로", label: "🤗 위로음식" },
+      { value: "특별한", label: "✨ 특별하게" },
+    ]
+  },
+  {
+    id: "withWho", label: "누구랑 먹어?",
+    options: [
+      { value: "alone", label: "🙋 혼자" },
+      { value: "friend", label: "👫 친구" },
+      { value: "partner", label: "💑 연인" },
+      { value: "family", label: "👨‍👩‍👧 가족" },
+    ]
+  },
+  {
+    id: "budget", label: "가격대는?",
+    options: [
+      { value: "low", label: "💰 가성비" },
+      { value: "mid", label: "💳 적당히" },
+      { value: "high", label: "💎 좀 쓸게" },
+    ]
+  },
+];
+
+const FOOD_CATS = [
+  { key: "all", label: "전체", emoji: "🍽️" },
+  { key: "한식", label: "한식", emoji: "🇰🇷" },
+  { key: "일식", label: "일식", emoji: "🇯🇵" },
+  { key: "양식", label: "양식", emoji: "🍝" },
+  { key: "분식", label: "분식", emoji: "🌶️" },
+  { key: "기타", label: "기타", emoji: "🌍" },
+];
+
+function getFoodTimeSlot() {
+  const h = new Date().getHours();
+  if (h >= 6 && h < 10) return "breakfast";
+  if (h >= 10 && h < 14) return "lunch";
+  if (h >= 14 && h < 17) return "afternoon";
+  if (h >= 17 && h < 21) return "dinner";
+  return "latenight";
+}
+
 // ─── 매칭 로직 ────────────────────────────────────────────
 function matchActivities(answers) {
   const allSubs = Object.values(answers.subs || {}).flat();
@@ -119,6 +177,9 @@ function matchActivities(answers) {
     const timeSlotMismatch = act.timeSlots && act.timeSlots.length > 0 && !act.timeSlots.includes(currentSlot);
     if (answers.cost === "무료" && !t.cost.includes("무료")) return null;
     if (answers.blacklistGenres?.includes(act.genre)) return null;
+    // 계절 필터
+    const currentMonth = new Date().getMonth() + 1;
+    if (SEASONAL_ACTIVITIES[act.id] && !SEASONAL_ACTIVITIES[act.id].includes(currentMonth)) return null;
     const fishingIds = [70,71,72,73];
     const waterSportIds = [74,75,76,77,78,79,80];
     if (answers.blacklistGenres?.includes("fishing") && fishingIds.includes(act.id)) return null;
@@ -245,6 +306,44 @@ export default function VibeApp() {
   const [tournamentHistory, setTournamentHistory] = useState([]);
   const [challengeMode, setChallengeMode] = useState(false);
   const timeSlot = getTimeSlot();
+
+  // ── 음식 탭 상태 ──
+  const [foodScreen, setFoodScreen] = useState("home"); // home | questions | result | roulette
+  const [foodStep, setFoodStep] = useState(0);
+  const [foodAnswers, setFoodAnswers] = useState({});
+  const [foodResult, setFoodResult] = useState(null);
+  const [rouletteCat, setRouletteCat] = useState("all");
+  const [rouletteFood, setRouletteFood] = useState(null);
+  const [spinning, setSpinning] = useState(false);
+  const [spinDisplay, setSpinDisplay] = useState(null);
+  const spinRef = useRef(null);
+
+  useEffect(() => { return () => { if (spinRef.current) clearTimeout(spinRef.current); }; }, []);
+
+  function startRoulette() {
+    const pool = rouletteCat === "all" ? foods
+      : rouletteCat === "기타" ? foods.filter(f => !["한식","일식","양식","분식"].some(c => f.category.includes(c)))
+      : foods.filter(f => f.category.includes(rouletteCat));
+    if (pool.length === 0) return;
+    setSpinning(true);
+    setRouletteFood(null);
+    let count = 0;
+    const maxCount = 20 + Math.floor(Math.random() * 10);
+    const finalIdx = Math.floor(Math.random() * pool.length);
+    const tick = () => {
+      count++;
+      setSpinDisplay(pool[count % pool.length]);
+      if (count >= maxCount) {
+        setSpinDisplay(pool[finalIdx]);
+        setRouletteFood(pool[finalIdx]);
+        setSpinning(false);
+        return;
+      }
+      const delay = count < maxCount - 8 ? 80 : 80 + (count - (maxCount - 8)) * 40;
+      spinRef.current = setTimeout(tick, delay);
+    };
+    tick();
+  }
 
   // ── 피드백 누적 (온보딩 B) ──
   function saveFeedback(chosenActivities) {
@@ -959,25 +1058,195 @@ export default function VibeApp() {
       {/* ── 뭐 먹지 탭 ── */}
       {tab === "whatToEat" && (
         <div className="screen fade-in" style={{ paddingTop:32 }}>
-          <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>뭐 먹지? 🍽️</div>
-          <div style={{ fontSize:14, color:"#999", marginBottom:24 }}>기분에 맞는 음식을 추천해줄게</div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {foods.slice(0, 12).map(food => (
-              <div key={food.id} style={{
-                background:"#fff", borderRadius:16, padding:"16px 14px",
-                textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
-              }}>
-                <div style={{ fontSize:36, marginBottom:8 }}>{food.emoji}</div>
-                <div style={{ fontSize:14, fontWeight:700, marginBottom:4 }}>{food.name}</div>
-                <div style={{ fontSize:11, color:"#aaa", lineHeight:1.4 }}>{food.summary}</div>
+          {/* 홈 */}
+          {foodScreen === "home" && (<>
+            <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>뭐 먹지? 🍽️</div>
+            <div style={{ fontSize:14, color:"#999", marginBottom:32 }}>기분에 맞는 음식을 추천해줄게</div>
+
+            <button onClick={() => { setFoodStep(0); setFoodAnswers({}); setFoodResult(null); setFoodScreen("questions"); }} style={{
+              width:"100%", padding:"20px", background:"#191919", color:"#fff",
+              border:"none", borderRadius:16, fontSize:16, fontWeight:800,
+              cursor:"pointer", fontFamily:"inherit", marginBottom:12
+            }}>
+              🍴 나한테 맞는 음식 추천
+            </button>
+
+            <button onClick={() => { setRouletteCat("all"); setRouletteFood(null); setSpinDisplay(null); setFoodScreen("roulette"); }} style={{
+              width:"100%", padding:"20px", background:"#fff", color:"#191919",
+              border:"1.5px solid #E0DED8", borderRadius:16, fontSize:16, fontWeight:800,
+              cursor:"pointer", fontFamily:"inherit"
+            }}>
+              🎲 랜덤으로 골라줘
+            </button>
+          </>)}
+
+          {/* 질문 */}
+          {foodScreen === "questions" && (<>
+            <div style={{ fontSize:13, color:"#aaa", marginBottom:8 }}>{foodStep + 1} / {FOOD_QUESTIONS.length}</div>
+            <div style={{ fontSize:22, fontWeight:900, marginBottom:20 }}>{FOOD_QUESTIONS[foodStep].label}</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {FOOD_QUESTIONS[foodStep].options.map(opt => (
+                <button key={opt.value} onClick={() => {
+                  const next = { ...foodAnswers, [FOOD_QUESTIONS[foodStep].id]: opt.value };
+                  setFoodAnswers(next);
+                  if (foodStep < FOOD_QUESTIONS.length - 1) {
+                    setFoodStep(foodStep + 1);
+                  } else {
+                    const prefs = { ...next, timeSlot: getFoodTimeSlot() };
+                    const result = recommendFood(foods, prefs);
+                    setFoodResult(result);
+                    setFoodScreen("result");
+                  }
+                }} style={{
+                  padding:"16px 18px", background: foodAnswers[FOOD_QUESTIONS[foodStep].id] === opt.value ? "#191919" : "#fff",
+                  color: foodAnswers[FOOD_QUESTIONS[foodStep].id] === opt.value ? "#fff" : "#191919",
+                  border:"1.5px solid #ECEAE4", borderRadius:14, fontSize:15, fontWeight:600,
+                  cursor:"pointer", fontFamily:"inherit", textAlign:"left"
+                }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => { if (foodStep > 0) setFoodStep(foodStep - 1); else setFoodScreen("home"); }} style={{
+              marginTop:20, background:"transparent", border:"none",
+              fontSize:13, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+            }}>
+              ← 뒤로
+            </button>
+          </>)}
+
+          {/* 결과 */}
+          {foodScreen === "result" && foodResult?.main && (<>
+            <div style={{ fontSize:13, color:"#aaa", marginBottom:16 }}>추천 결과</div>
+
+            <div style={{
+              background:"#191919", borderRadius:24, padding:"28px 24px",
+              textAlign:"center", marginBottom:16, color:"#fff"
+            }}>
+              <div style={{ fontSize:56, marginBottom:12 }}>{foodResult.main.emoji}</div>
+              <div style={{ fontSize:24, fontWeight:900, marginBottom:8 }}>{foodResult.main.name}</div>
+              <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.5 }}>{foodResult.main.summary}</div>
+              <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:16, flexWrap:"wrap" }}>
+                {foodResult.main.tags?.map(tag => (
+                  <span key={tag} style={{
+                    padding:"4px 10px", borderRadius:100, fontSize:11, fontWeight:600,
+                    background:"rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)"
+                  }}>#{tag}</span>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div style={{ textAlign:"center", padding:"24px", color:"#bbb", fontSize:13 }}>
-            질문 기반 추천은 곧 업데이트돼요
-          </div>
+            {foodResult.alternatives.length > 0 && (
+              <div style={{ marginBottom:20 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:"#999", marginBottom:10 }}>이것도 괜찮아</div>
+                <div style={{ display:"flex", gap:10 }}>
+                  {foodResult.alternatives.map(alt => (
+                    <div key={alt.id} style={{
+                      flex:1, background:"#fff", borderRadius:16, padding:"16px 12px",
+                      textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
+                    }}>
+                      <div style={{ fontSize:32, marginBottom:6 }}>{alt.emoji}</div>
+                      <div style={{ fontSize:14, fontWeight:700, marginBottom:4 }}>{alt.name}</div>
+                      <div style={{ fontSize:11, color:"#aaa", lineHeight:1.4 }}>{alt.summary}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button onClick={() => { setFoodStep(0); setFoodAnswers({}); setFoodResult(null); setFoodScreen("questions"); }} style={{
+              width:"100%", padding:"15px", background:"#191919", color:"#fff",
+              border:"none", borderRadius:14, fontSize:15, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit", marginBottom:8
+            }}>
+              다시 추천 받기
+            </button>
+            <button onClick={() => setFoodScreen("home")} style={{
+              width:"100%", padding:"12px", background:"transparent", border:"none",
+              fontSize:13, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+            }}>
+              ← 처음으로
+            </button>
+          </>)}
+
+          {/* 룰렛 */}
+          {foodScreen === "roulette" && (<>
+            <div style={{ fontSize:22, fontWeight:900, marginBottom:16 }}>🎲 랜덤 음식 룰렛</div>
+
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:24 }}>
+              {FOOD_CATS.map(cat => (
+                <button key={cat.key} onClick={() => { if (!spinning) { setRouletteCat(cat.key); setRouletteFood(null); setSpinDisplay(null); } }} style={{
+                  padding:"8px 14px", borderRadius:100, fontSize:13, fontWeight:700,
+                  border: rouletteCat === cat.key ? "1.5px solid #191919" : "1.5px solid #E0DED8",
+                  background: rouletteCat === cat.key ? "#191919" : "#fff",
+                  color: rouletteCat === cat.key ? "#fff" : "#666",
+                  cursor: spinning ? "default" : "pointer", fontFamily:"inherit"
+                }}>
+                  {cat.emoji} {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <div style={{
+              background:"#fff", borderRadius:24, padding:"40px 24px",
+              textAlign:"center", marginBottom:20, minHeight:200,
+              boxShadow:"0 2px 8px rgba(0,0,0,0.06)",
+              display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"
+            }}>
+              {spinDisplay ? (<>
+                <div style={{ fontSize:64, marginBottom:12, transition: spinning ? "none" : "transform 0.3s", transform: !spinning ? "scale(1.1)" : "scale(1)" }}>{spinDisplay.emoji}</div>
+                <div style={{ fontSize:22, fontWeight:900, color: spinning ? "#ccc" : "#191919" }}>{spinDisplay.name}</div>
+                {!spinning && rouletteFood && (
+                  <div style={{ fontSize:13, color:"#999", marginTop:8, lineHeight:1.5, padding:"0 12px" }}>{rouletteFood.summary}</div>
+                )}
+                {!spinning && rouletteFood?.tags && (
+                  <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:12, flexWrap:"wrap" }}>
+                    {rouletteFood.tags.map(tag => (
+                      <span key={tag} style={{ padding:"3px 8px", borderRadius:100, fontSize:10, fontWeight:600, background:"#F0EDE8", color:"#888" }}>#{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </>) : (
+                <div style={{ fontSize:18, color:"#ccc", fontWeight:600 }}>카테고리 고르고 돌려!</div>
+              )}
+            </div>
+
+            {!rouletteFood ? (
+              <button onClick={startRoulette} disabled={spinning} style={{
+                width:"100%", padding:"17px", background: spinning ? "#D0CEC8" : "#191919",
+                color: spinning ? "#999" : "#fff", border:"none", borderRadius:16,
+                fontSize:16, fontWeight:800, cursor: spinning ? "default" : "pointer", fontFamily:"inherit"
+              }}>
+                {spinning ? "돌리는 중..." : "🎰 돌려!"}
+              </button>
+            ) : (
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={startRoulette} style={{
+                  flex:1, padding:"15px", background:"#191919", color:"#fff",
+                  border:"none", borderRadius:14, fontSize:15, fontWeight:700,
+                  cursor:"pointer", fontFamily:"inherit"
+                }}>
+                  🎰 다시 돌려
+                </button>
+                <button onClick={() => setFoodScreen("home")} style={{
+                  flex:1, padding:"15px", background:"#fff", color:"#666",
+                  border:"1.5px solid #E0DED8", borderRadius:14, fontSize:15, fontWeight:700,
+                  cursor:"pointer", fontFamily:"inherit"
+                }}>
+                  처음으로
+                </button>
+              </div>
+            )}
+
+            <button onClick={() => setFoodScreen("home")} style={{
+              marginTop:12, width:"100%", background:"transparent", border:"none",
+              fontSize:13, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+            }}>
+              ← 뒤로
+            </button>
+          </>)}
+
         </div>
       )}
 

@@ -21,6 +21,11 @@ export function scoreActivity(activity, prefs) {
   // 블랙리스트 장르면 -100 (사실상 제외)
   if (blacklistGenres.includes(activity.genre)) return -100;
 
+  // 계절 필터: 계절에 안 맞는 활동 제외
+  const SEASON_MAP = { 150:[12,1,2], 74:[5,6,7,8,9], 78:[5,6,7,8,9], 79:[5,6,7,8,9] };
+  const curMonth = new Date().getMonth() + 1;
+  if (SEASON_MAP[activity.id] && !SEASON_MAP[activity.id].includes(curMonth)) return -100;
+
   // 시간대 하드 필터: timeSlots가 있으면 현재 시간대에 맞아야 함
   const slot = timeSlot || detectTimeSlot();
   if (activity.timeSlots && activity.timeSlots.length > 0 && !activity.timeSlots.includes(slot)) return -100;
@@ -132,6 +137,15 @@ export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0,
 
   // tidy 과다 방지: 정리/청소는 최대 1개
   if (next.genre === "tidy" && plan.some((a) => a.genre === "tidy")) return false;
+
+  // 캠핑 코스: 캠핑과 안 어울리는 실내 활동 차단
+  if (plan.some((a) => a.genre === "camp")) {
+    const campOk = ["camp", "cooking", "food", "nature", "social"];
+    if (!campOk.includes(next.genre)) return false;
+  }
+
+  // 장시간 활동(4시간+) 뒤에는 최대 1개 추가만
+  if (plan.some((a) => (a.duration || a.time || 30) >= 240) && plan.length >= 2) return false;
 
   return true;
 }

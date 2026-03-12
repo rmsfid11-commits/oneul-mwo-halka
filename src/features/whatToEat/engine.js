@@ -34,7 +34,7 @@ export function recommendFood(foods, prefs) {
     if (mood && f.mood && f.mood.includes(mood)) score += 3;
 
     // timeSlot 일치 +2
-    if (timeSlot && f.timeSlot && f.timeSlot.includes(timeSlot)) score += 2;
+    if (timeSlot && f.timeSlots && f.timeSlots.includes(timeSlot)) score += 2;
 
     // budget 일치 +1
     if (budget && f.budget && f.budget.includes(budget)) score += 1;
