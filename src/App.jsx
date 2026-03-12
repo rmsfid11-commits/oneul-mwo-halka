@@ -784,7 +784,7 @@ export default function VibeApp() {
                 </div>
               ))}
 
-              {/* 코스 없이 직접 만들기 */}
+              {/* 직접 만들기 — 추후 활성화
               <button type="button" onClick={() => {
                 setSelectedCourse({ activities: [champion], title: "직접 만든 코스", reason: "", totalMinutes: champion.time });
                 setMySchedule([champion]);
@@ -795,7 +795,7 @@ export default function VibeApp() {
                 fontFamily:"inherit"
               }}>
                 직접 일정 만들기 →
-              </button>
+              </button> */}
             </div>
           )}
 
