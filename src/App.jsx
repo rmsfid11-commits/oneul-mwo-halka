@@ -1299,7 +1299,8 @@ export default function VibeApp() {
 
           {/* 결과 */}
           {foodScreen === "result" && foodResult?.main && (<>
-            <div style={{ fontSize:13, color:"#aaa", marginBottom:6 }}>추천 결과 <span style={{ color:"#ccc" }}>· 카드를 탭하면 상식이 나와</span></div>
+            <div style={{ fontSize:13, color:"#aaa", marginBottom:4 }}>추천 결과 <span style={{ color:"#ccc" }}>· 카드를 탭하면 상식이 나와</span></div>
+            {foodResult.reason && <div style={{ fontSize:13, color:"#666", marginBottom:10, lineHeight:1.5 }}>{foodResult.reason}</div>}
 
             {/* 메인 추천 카드 (뒤집기) */}
             <div style={{ perspective:"800px", marginBottom:16, cursor:"pointer" }} onClick={() => toggleFoodFlip(foodResult.main.id)}>
