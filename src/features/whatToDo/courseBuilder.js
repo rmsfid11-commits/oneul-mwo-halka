@@ -1,6 +1,18 @@
 // 코스 조립 엔진 v2
 // goodAfter/goodBefore 방향 수정, role 사용, 식사 흐름 보장, 랜덤 축소
 
+// ── 공통 유틸 ──
+function getDuration(a) {
+  return a.duration || a.time || 30;
+}
+
+function getRarityBonus(a, plan, weirdCount, allowedRoles) {
+  if (a.rarity === "weird" && weirdCount === 0 && allowedRoles?.includes("filler")) {
+    return 1;
+  }
+  return 0;
+}
+
 function detectTimeSlot() {
   const h = new Date().getHours();
   if (h >= 6 && h < 12) return "morning";
@@ -76,7 +88,7 @@ export function getAnchorCandidates(activities, prefs, remainingMinutes) {
 
   return activities
     .filter((a) => {
-      const t = a.duration || a.time || 30;
+      const t = getDuration(a);
       return t >= minAnchorTime && t <= maxAnchorTime;
     })
     .map((a) => ({ activity: a, score: scoreActivity(a, prefs) }))
@@ -117,7 +129,7 @@ function hasMove(plan) {
 export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0, plan = []) {
   if (usedIds.has(next.id)) return false;
 
-  const nextTime = next.duration || next.time || 30;
+  const nextTime = getDuration(next);
   if (nextTime > remainingMinutes) return false;
   if (nextTime < 15) return false;
 
@@ -155,11 +167,14 @@ export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0,
     }
   }
 
-  // 3시간 이상 활동 뒤에는 가벼운 것만
-  const longAnchor = plan.find((a) => (a.duration || a.time || 30) >= 180);
-  if (longAnchor && plan.length >= 1) {
-    const allowedAfterLong = ["food", "cooking", "relax", "healing", "culture", "nature"];
-    if (!allowedAfterLong.includes(next.genre)) return false;
+  // [수정 4] longAnchor: 죽은 조건 제거 + 위치 기반으로 개선
+  const longAnchorIndex = plan.findIndex((a) => getDuration(a) >= 180);
+  if (longAnchorIndex !== -1) {
+    const isAfterLongAnchor = plan.length - 1 >= longAnchorIndex;
+    if (isAfterLongAnchor) {
+      const allowedAfterLong = ["food", "cooking", "relax", "healing", "culture", "nature"];
+      if (!allowedAfterLong.includes(next.genre)) return false;
+    }
   }
 
   return true;
@@ -169,11 +184,9 @@ export function canFollow(prev, next, usedIds, remainingMinutes, weirdCount = 0,
 function connectionScore(prev, next) {
   let score = 0;
 
-  // prev 뒤에 next가 어울리는지 (방향 수정!)
   if (prev.goodAfter && prev.goodAfter.includes(next.genre)) score += 4;
   if (next.goodBefore && next.goodBefore.includes(prev.genre)) score += 4;
 
-  // energy 흐름
   if (prev.energyAfter && next.energyBefore) {
     score += prev.energyAfter.filter((e) => next.energyBefore.includes(e)).length * 2;
   }
@@ -184,12 +197,10 @@ function connectionScore(prev, next) {
   if (prevEnergy.includes("mid") && nextEnergy.includes("mid")) score += 1;
   if (prevEnergy.includes("high") && nextEnergy.includes("low")) score -= 1;
 
-  // vibe 연결성
   if (prev.vibe && next.vibe) {
     score += Math.min(prev.vibe.filter((v) => next.vibe.includes(v)).length, 2);
   }
 
-  // 준비 활동이 실행 뒤에 오면 감점
   const prepKeywords = ["계획", "준비", "리스트", "세팅"];
   const nextIsPrep = prepKeywords.some((k) => next.name?.includes(k));
   const prevIsAction = !prepKeywords.some((k) => prev.name?.includes(k));
@@ -205,7 +216,7 @@ function getRoleTargets(plan, remainingMinutes, maxActivitiesPerCourse) {
   return ["filler", "closing"];
 }
 
-// ── 다음 활동 선택: role 사용 + 랜덤 축소 + 중복 감점 ──
+// ── [수정 3] 다음 활동 선택: penalty 완화 + score 필터 완화 ──
 export function pickNextActivity(
   allActivities, prev, prefs, usedIds, remainingMinutes,
   allowedRoles, weirdCount = 0, plan = [], globalUsedIds = new Set()
@@ -216,64 +227,70 @@ export function pickNextActivity(
       const base = scoreActivity(a, prefs);
       const conn = connectionScore(prev, a);
 
-      // role 보너스: 역할 매칭 시 +3
       let roleBonus = 0;
       if (allowedRoles && allowedRoles.length > 0 && a.role) {
         if (a.role.some((r) => allowedRoles.includes(r))) roleBonus += 3;
       }
 
-      // weird 보너스 (filler일 때만)
-      let rarityBonus = 0;
-      if (a.rarity === "weird" && weirdCount === 0 && allowedRoles?.includes("filler")) {
-        rarityBonus += 1;
-      }
+      const rarityBonus = getRarityBonus(a, plan, weirdCount, allowedRoles);
 
-      // 코스 간 중복: 완전 차단 대신 감점
-      const reusedPenalty = globalUsedIds.has(a.id) ? 3 : 0;
+      // [수정 3] 3 → 1.5로 완화
+      const reusedPenalty = globalUsedIds.has(a.id) ? 1.5 : 0;
 
-      // 랜덤 축소: 1.5 → 0.3
       return {
         activity: a,
         totalScore: base + conn + roleBonus + rarityBonus - reusedPenalty + Math.random() * 0.3,
       };
     })
-    .filter((c) => c.totalScore > 0)
     .sort((a, b) => b.totalScore - a.totalScore);
 
-  return candidates[0]?.activity || null;
+  // [수정 3] > 0 필터 대신 > -1로 완화, 그것도 없으면 최상위 후보 반환
+  const viable = candidates.filter((c) => c.totalScore > -1);
+  return viable[0]?.activity || candidates[0]?.activity || null;
 }
 
-// ── 긴 코스에 식사 흐름 자동 삽입 ──
+// ── [수정 1] 긴 코스에 식사 흐름 자동 삽입: usedIds 반영 ──
 function injectMealIfNeeded(plan, activities, prefs, usedIds, remainingMinutes) {
-  const total = plan.reduce((sum, a) => sum + (a.duration || a.time || 30), 0);
-  if (total < 120) return plan; // 2시간 미만이면 패스
-  if (hasMeal(plan)) return plan; // 이미 식사 있으면 패스
+  const total = plan.reduce((sum, a) => sum + getDuration(a), 0);
+  if (total < 120) return { plan, usedIds, insertedMeal: null };
+  if (hasMeal(plan)) return { plan, usedIds, insertedMeal: null };
 
   const meal = activities
     .filter((a) => !usedIds.has(a.id))
     .filter((a) => ["food", "cooking"].includes(a.genre))
-    .filter((a) => (a.duration || a.time || 30) <= remainingMinutes + 20)
+    .filter((a) => getDuration(a) <= remainingMinutes + 20)
     .map((a) => ({ activity: a, score: scoreActivity(a, prefs) }))
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score)[0]?.activity;
 
-  if (!meal) return plan;
+  if (!meal) return { plan, usedIds, insertedMeal: null };
 
-  // 마지막 전에 삽입
+  const nextUsedIds = new Set(usedIds);
+  nextUsedIds.add(meal.id);
+
+  let nextPlan;
   if (plan.length >= 2) {
-    return [...plan.slice(0, -1), meal, plan[plan.length - 1]];
+    nextPlan = [...plan.slice(0, -1), meal, plan[plan.length - 1]];
+  } else {
+    nextPlan = [...plan, meal];
   }
-  return [...plan, meal];
+
+  return { plan: nextPlan, usedIds: nextUsedIds, insertedMeal: meal };
 }
 
 // ── 코스 제목 생성 ──
-export function generatePlanTitle(plan, prefs, courseIndex = 0) {
+function stablePick(arr, plan) {
+  const seed = plan.reduce((sum, a) => sum + (a.id || 0), 0);
+  return arr[seed % arr.length];
+}
+
+export function generatePlanTitle(plan, prefs) {
   const genres = plan.map((a) => a.genre);
   const hasGenre = (g) => genres.includes(g);
   const isHome = prefs.location === "home";
   const need = prefs.need;
   const first = plan[0];
-  const pick = (arr) => arr[courseIndex % arr.length];
+  const pick = (arr) => stablePick(arr, plan);
 
   if (hasGenre("water") && plan.some((a) => a.name?.includes("낚시"))) {
     return pick(["물 위에서 여유 부리는 코스", `${first.name}부터 시작하는 물멍 코스`, "낚시하고 느긋하게 마무리"]);
@@ -330,11 +347,11 @@ export function generatePlanTitle(plan, prefs, courseIndex = 0) {
   return pick([`${first.name}(으)로 시작하는 코스`, "오늘 이렇게 보내봐", "이런 흐름 어때?"]);
 }
 
-// ── 코스 이유 생성: 흐름 설명 포함 ──
+// ── 코스 이유 생성 ──
 export function generatePlanReason(plan) {
   if (!plan || plan.length === 0) return "";
 
-  const totalMinutes = plan.reduce((sum, a) => sum + (a.duration || a.time || 30), 0);
+  const totalMinutes = plan.reduce((sum, a) => sum + getDuration(a), 0);
   const hours = Math.floor(totalMinutes / 60);
   const mins = totalMinutes % 60;
   const timeText = hours > 0 ? `${hours}시간${mins > 0 ? ` ${mins}분` : ""}` : `${mins}분`;
@@ -356,19 +373,29 @@ export function generatePlanReason(plan) {
   return `${first.emoji} ${first.name}로 시작해서 ${middle} 마지막엔 ${last.emoji} ${last.name}(으)로 마무리하는 약 ${timeText} 코스야.`;
 }
 
-// ── 코스 중복 제거 ──
+// ── [수정 2] 코스 중복 제거 강화: anchor 동일 = 중복, threshold 60% ──
 function dedupePlans(plans) {
   const result = [];
+
   for (const plan of plans) {
     const ids = new Set(plan.map((a) => a.id));
+    const anchorId = plan[0]?.id;
+
     const isDup = result.some((existing) => {
       const existIds = new Set(existing.map((a) => a.id));
+      const existingAnchorId = existing[0]?.id;
+
+      if (anchorId && existingAnchorId && anchorId === existingAnchorId) return true;
+
       const overlap = [...ids].filter((id) => existIds.has(id)).length;
       const minLen = Math.min(ids.size, existIds.size);
-      return overlap >= Math.ceil(minLen * 0.5);
+      const overlapRatio = minLen > 0 ? overlap / minLen : 0;
+      return overlapRatio >= 0.6;
     });
+
     if (!isDup) result.push(plan);
   }
+
   return result;
 }
 
@@ -396,11 +423,11 @@ export function buildCoursePlans(activities, prefs, championId) {
       .slice(0, 3)
       .map((x) => [x.a]);
 
-    return fallback.map((plan, idx) => ({
+    return fallback.map((plan) => ({
       activities: plan,
-      title: generatePlanTitle(plan, prefs, idx),
+      title: generatePlanTitle(plan, prefs),
       reason: generatePlanReason(plan),
-      totalMinutes: plan.reduce((s, a) => s + (a.duration || a.time || 30), 0),
+      totalMinutes: plan.reduce((s, a) => s + getDuration(a), 0),
     }));
   }
 
@@ -426,8 +453,8 @@ export function buildCoursePlans(activities, prefs, championId) {
 
   for (const anchor of selectedAnchors) {
     let plan = [anchor];
-    const usedIds = new Set([anchor.id]);
-    let remaining = totalMinutes - (anchor.duration || anchor.time || 30);
+    let usedIds = new Set([anchor.id]);
+    let remaining = totalMinutes - getDuration(anchor);
     let weirdCount = anchor.rarity === "weird" ? 1 : 0;
 
     while (plan.length < maxActivitiesPerCourse && remaining >= 15) {
@@ -442,12 +469,14 @@ export function buildCoursePlans(activities, prefs, championId) {
       if (!next) break;
       plan.push(next);
       usedIds.add(next.id);
-      remaining -= next.duration || next.time || 30;
+      remaining -= getDuration(next);
       if (next.rarity === "weird") weirdCount++;
     }
 
-    // 긴 코스에 식사 자동 삽입
-    plan = injectMealIfNeeded(plan, activities, prefs, usedIds, remaining);
+    // [수정 1] 식사 자동 삽입 + usedIds 반영
+    const mealInjected = injectMealIfNeeded(plan, activities, prefs, usedIds, remaining);
+    plan = mealInjected.plan;
+    usedIds = mealInjected.usedIds;
 
     rawPlans.push(plan);
     plan.forEach((a) => globalUsedIds.add(a.id));
@@ -455,10 +484,69 @@ export function buildCoursePlans(activities, prefs, championId) {
 
   const uniquePlans = dedupePlans(rawPlans);
 
-  return uniquePlans.slice(0, 3).map((plan, idx) => ({
+  return uniquePlans.slice(0, 3).map((plan) => ({
     activities: plan,
-    title: generatePlanTitle(plan, prefs, idx),
+    title: generatePlanTitle(plan, prefs),
     reason: generatePlanReason(plan),
-    totalMinutes: plan.reduce((sum, a) => sum + (a.duration || a.time || 30), 0),
+    totalMinutes: plan.reduce((sum, a) => sum + getDuration(a), 0),
   }));
+}
+
+// ── 오늘의 픽: BEST MATCH 코스의 anchor에서 추출 ──
+export function extractChampion(plans, prefs = {}) {
+  if (!plans || plans.length === 0) return null;
+
+  const bestPlan = plans[0];
+  const activity = bestPlan.activities[0];
+  if (!activity) return null;
+
+  // hook: hint 첫 문장
+  const hint = activity.hint ?? "";
+  const hook = hint.split(".")[0].split("!")[0].split("?")[0].trim() || activity.summary || activity.name;
+
+  // 맞춤 reason: need + subs 기반으로 "왜 너한테 맞는지" 생성
+  const { need, subs = {}, alone } = prefs;
+  const allSubs = Object.values(subs).flat();
+
+  const NEED_LABEL = {
+    힐링: "쉬고 싶다고 했잖아",
+    성취감: "뭔가 해내고 싶다고 했잖아",
+    자극: "자극이 필요하다고 했잖아",
+    멍때리기: "아무것도 하기 싫다고 했잖아",
+  };
+
+  const SUB_LABEL = {
+    정리정돈: "정리하고 싶은 거",
+    완성하는기쁨: "뭔가 완성하고 싶은 거",
+    지적자극: "배우고 싶은 거",
+    뿌듯함: "땀 흘리고 싶은 거",
+    고요함: "조용히 쉬고 싶은 거",
+    따뜻함: "따뜻한 게 필요한 거",
+    감성충전: "감성 충전이 필요한 거",
+    몸회복: "몸 회복이 필요한 거",
+    웃음: "그냥 웃고 싶은 거",
+    두근거림: "두근거리는 게 필요한 거",
+    새로운경험: "새로운 걸 해보고 싶은 거",
+    도전: "도전하고 싶은 거",
+    수동적소비: "그냥 틀어놓고 싶은 거",
+    아무생각없이: "아무 생각 없이 있고 싶은 거",
+    자연감성: "자연 속에서 멍때리고 싶은 거",
+    혼자만의시간: "혼자만의 시간이 필요한 거",
+  };
+
+  const needStr = NEED_LABEL[need] || "";
+  const subStr = allSubs.length > 0
+    ? SUB_LABEL[allSubs[0]] || allSubs[0]
+    : "";
+
+  let reason = "";
+  if (subStr && needStr) {
+    reason = `${needStr} — ${subStr}잖아. ${hint}`;
+  } else if (needStr) {
+    reason = `${needStr}. ${hint}`;
+  } else {
+    reason = bestPlan.reason;
+  }
+
+  return { activity, hook, reason };
 }
