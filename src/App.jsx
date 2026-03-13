@@ -5,6 +5,7 @@ import { foods } from './data/foods.js';
 import { recommendFood } from './features/whatToEat/engine.js';
 import { places } from './data/places.js';
 import { supabase } from './lib/supabase.js';
+import { pickChampion } from './features/whatToDo/pickChampion.js';
 
 const S = {
   screen: { maxWidth:480, margin:"0 auto", padding:"24px 20px 80px" },
@@ -306,6 +307,7 @@ export default function VibeApp() {
   const [champFlipped, setChampFlipped] = useState(false);
   const [tournamentHistory, setTournamentHistory] = useState([]);
   const [challengeMode, setChallengeMode] = useState(false);
+  const [championPick, setChampionPick] = useState(null);
   const timeSlot = getTimeSlot();
 
   // ── 코스 피드백 ──
@@ -626,6 +628,17 @@ export default function VibeApp() {
         if (newWinners.length === 1) {
           // 챔피언 결정
           setChampion(newWinners[0]);
+
+          // pickChampion — 오늘의 픽 계산
+          const _cpResult = pickChampion(ACTIVITIES, {
+            vibe: Object.values(answers.subs || {}).flat(),
+            timeSlot: getTimeSlot(),
+            energy: "mid",
+            withWho: answers.alone,
+            budget: answers.cost,
+          }, { excludeIds: [newWinners[0].id] });
+          setChampionPick(_cpResult);
+
           const initialSchedule = [newWinners[0]];
           setMySchedule(initialSchedule);
           // 히스토리 저장
@@ -1011,6 +1024,38 @@ export default function VibeApp() {
           {/* ── 코스 선택 모드 ── */}
           {!selectedCourse && courses.length > 0 && (
             <div style={{ marginBottom:20 }}>
+
+              {/* ── 오늘의 픽 카드 ── */}
+              {championPick && (
+                <div style={{
+                  background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                  borderRadius: 20, padding: "20px 18px", marginBottom: 20, color: "#fff",
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, marginBottom: 10 }}>
+                    ✦ 오늘의 픽
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
+                    <div style={{ fontSize: 40 }}>{championPick.activity.emoji}</div>
+                    <div>
+                      <div style={{ fontSize: 20, fontWeight: 900 }}>{championPick.activity.name}</div>
+                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
+                        {championPick.activity.duration || championPick.activity.time}분
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.9)",
+                    lineHeight: 1.6, marginBottom: 8,
+                    borderLeft: "2px solid rgba(255,255,255,0.3)", paddingLeft: 12,
+                  }}>
+                    "{championPick.hook}"
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                    {championPick.reason}
+                  </div>
+                </div>
+              )}
+
               <div style={{ marginBottom:20 }}>
                 <div style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.5px" }}>오늘 이렇게 보내볼까?</div>
                 <div style={{ fontSize:13, color:"#999", marginTop:6 }}>
