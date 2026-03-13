@@ -59,7 +59,7 @@ body {
   0%   { transform: translateY(0) translateX(0); opacity: 0; }
   8%   { opacity: 0.75; }
   85%  { opacity: 0.45; }
-  100% { transform: translateY(-110px) translateX(var(--drift)); opacity: 0; }
+  100% { transform: translateY(-160px) translateX(var(--drift)); opacity: 0; }
 }
 
 .soda-card {

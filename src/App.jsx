@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { activities as ACTIVITIES } from './data/activities.js';
 import { buildCoursePlans, extractChampion } from './features/whatToDo/courseBuilder.js';
 import { foods } from './data/foods.js';
@@ -633,7 +633,15 @@ export default function VibeApp() {
   }
 
   function pickWinner(winner, side) {
+    if (picking) return; // 연타 방지
     setPicking(side);
+    // 소다 색상 랜덤 지정
+    const TOURNEY_COLORS = [
+      ["#fff7ed","#f97316"],["#f0fdf4","#22d3a5"],["#fefce8","#facc15"],
+      ["#eff6ff","#6366f1"],["#f5f3ff","#a78bfa"],["#ecfdf5","#34d399"],
+    ];
+    sodaColorRef.current._tourney = TOURNEY_COLORS[Math.floor(Math.random() * TOURNEY_COLORS.length)];
+    setSodaKeys(p => ({ ...p, _tourney: (p._tourney || 0) + 1 }));
     setTournamentHistory(h => [...h, winner]);
     setTimeout(() => {
       setPicking(null);
@@ -699,7 +707,7 @@ export default function VibeApp() {
         setMatchIdx(nextIdx);
         setRoundWinners(newWinners);
       }
-    }, 400);
+    }, 900);
   }
 
   const pair = bracket.slice(matchIdx, matchIdx + 2);
@@ -1065,25 +1073,57 @@ export default function VibeApp() {
           <div className="match-label">둘 중에 더 끌리는 거 골라봐 · {currentMatch}/{totalMatches}</div>
 
           <div className="cards-wrap">
-            <div
-              className={`toss-card ${picking === "left" ? "picking-left" : ""}`}
-              onClick={() => pickWinner(pair[0], "left")}
-            >
-              <div className="card-emoji">{pair[0].emoji}</div>
-              <div className="card-name">{pair[0].name}</div>
-              <div className="card-time">{pair[0].time}분</div>
-            </div>
-
-            <div className="vs-divider">VS</div>
-
-            <div
-              className={`toss-card ${picking === "right" ? "picking-right" : ""}`}
-              onClick={() => pickWinner(pair[1], "right")}
-            >
-              <div className="card-emoji">{pair[1].emoji}</div>
-              <div className="card-name">{pair[1].name}</div>
-              <div className="card-time">{pair[1].time}분</div>
-            </div>
+            {[["left", pair[0]], ["right", pair[1]]].map(([side, act], idx) => {
+              const isPicked = picking === side;
+              const isOther = picking && picking !== side;
+              const tc = sodaColorRef.current._tourney || ["#eff6ff","#6366f1"];
+              const tk = sodaKeys._tourney || 0;
+              const TBUBBLES = [
+                {left:"10%",size:5,dur:3.0,delay:0.2},{left:"22%",size:8,dur:2.6,delay:0.7},
+                {left:"35%",size:4,dur:3.4,delay:1.3},{left:"48%",size:9,dur:2.8,delay:0.5},
+                {left:"62%",size:6,dur:3.2,delay:1.0},{left:"75%",size:4,dur:2.9,delay:1.6},
+                {left:"85%",size:7,dur:3.1,delay:0.4},{left:"50%",size:5,dur:2.7,delay:1.8},
+              ];
+              return (
+                <React.Fragment key={side}>
+                  {idx === 1 && <div className="vs-divider">VS</div>}
+                  <div
+                    className={`toss-card${isPicked ? " picking-"+side : ""}`}
+                    onClick={() => pickWinner(act, side)}
+                    style={{
+                      opacity: isOther ? 0.4 : 1,
+                      transition: "opacity 0.3s ease, transform 0.25s",
+                      overflow: "hidden",
+                      position: "relative",
+                      animation: isPicked ? "shakeCan 0.55s ease" : "none",
+                    }}
+                  >
+                    {isPicked && (<>
+                      <div className="liquid" key={tk} style={{ position:"absolute", left:-4, right:-4, bottom:-50, top:-30, animation:"liquidRise 1.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards", zIndex:1 }}>
+                        <div style={{ position:"absolute", top:0, left:0, right:0, height:24, overflow:"hidden" }}>
+                          <svg style={{ width:"200%", height:24, display:"block", animation:"waveScroll 2s linear infinite" }} viewBox="0 0 200 24" preserveAspectRatio="none">
+                            <path d="M0,12 C25,2 50,22 75,12 C100,2 125,22 150,12 C175,2 200,22 200,12 L200,24 L0,24 Z" fill={tc[0]} />
+                          </svg>
+                        </div>
+                        <div style={{ position:"absolute", inset:0, top:18, background:`linear-gradient(180deg, ${tc[0]} 0%, ${tc[1]} 100%)` }} />
+                      </div>
+                      {TBUBBLES.map((b, i) => (
+                        <div key={`t${tk}-b${i}`} style={{
+                          position:"absolute", width:b.size, height:b.size, left:b.left,
+                          bottom:`${6+(i%6)*4}%`, borderRadius:"50%",
+                          background:"rgba(255,255,255,0.78)", zIndex:3,
+                          animation:`bubbleFloat ${b.dur}s ease-out ${b.delay}s infinite`,
+                          opacity:0, "--drift":`${((i%5)-2)*5}px`, pointerEvents:"none",
+                        }} />
+                      ))}
+                    </>)}
+                    <div className="card-emoji" style={{ position:"relative", zIndex:4 }}>{act.emoji}</div>
+                    <div className="card-name" style={{ position:"relative", zIndex:4 }}>{act.name}</div>
+                    <div className="card-time" style={{ position:"relative", zIndex:4 }}>{act.time}분</div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
           </div>
 
           <button style={{ background:"transparent", border:"none", color:"#bbb", fontSize:13, cursor:"pointer", marginTop:24, width:"100%", fontFamily:"inherit" }}
