@@ -197,6 +197,13 @@ function matchActivities(answers) {
     // 같이 모드 보너스
     if (answers.alone === "같이" && togetherWith) {
       if (togetherGenreBonus[togetherWith]?.includes(act.genre)) score += 3;
+      // 연인 전용 활동 강력 보너스
+      if (togetherWith === "연인") {
+        if (act.withWho?.includes("couple")) score += 6;
+        if (act.vibe?.some(v => ["데이트", "로맨틱"].includes(v))) score += 4;
+      }
+      if (togetherWith === "친구" && act.withWho?.includes("friend")) score += 2;
+      if (togetherWith === "가족" && act.withWho?.includes("family")) score += 2;
     }
 
     // vibe 직접 매칭 — 서브 선택값이 활동 vibe와 일치할 때
@@ -651,6 +658,7 @@ export default function VibeApp() {
               preferredVibes: answers.preferredVibes,
               blacklistGenres: answers.blacklistGenres,
               timeSlot: getTimeSlot(),
+              togetherWith: (answers.subs?.alone || [])[0] || null,
             };
             const plans = buildCoursePlans(ACTIVITIES, coursePrefs, newWinners[0].id);
             // 챔피언이 포함된 코스를 우선 정렬
@@ -930,6 +938,7 @@ export default function VibeApp() {
                   preferredVibes: enrichedAnswers.preferredVibes,
                   blacklistGenres: answers.blacklistGenres,
                   timeSlot: getTimeSlot(),
+                  togetherWith: (answers.subs?.alone || [])[0] || null,
                 };
                 const plans = buildCoursePlans(ACTIVITIES, coursePrefs, topAct.id);
                 setCourses(plans);

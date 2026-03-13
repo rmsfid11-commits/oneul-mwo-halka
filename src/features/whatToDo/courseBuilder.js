@@ -78,6 +78,19 @@ export function scoreActivity(activity, prefs) {
     if (tags.location && !tags.location.includes("home")) score -= 2;
   }
 
+  // 연인 모드 보너스
+  const togetherWith = prefs.togetherWith;
+  if (togetherWith === "연인") {
+    if (activity.withWho?.includes("couple")) score += 5;
+    if (activity.vibe?.some(v => ["데이트", "로맨틱"].includes(v))) score += 3;
+    // 혼자 전용 활동 페널티
+    if (tags.alone?.length === 1 && tags.alone[0] === "혼자") score -= 5;
+  } else if (togetherWith === "친구") {
+    if (activity.withWho?.includes("friend")) score += 2;
+  } else if (togetherWith === "가족") {
+    if (activity.withWho?.includes("family")) score += 2;
+  }
+
   return score;
 }
 
