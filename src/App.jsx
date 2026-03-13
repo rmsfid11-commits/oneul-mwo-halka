@@ -644,7 +644,6 @@ export default function VibeApp() {
     setSodaKeys(p => ({ ...p, _tourney: (p._tourney || 0) + 1 }));
     setTournamentHistory(h => [...h, winner]);
     setTimeout(() => {
-      setPicking(null);
       const newWinners = [...roundWinners, winner];
       const nextIdx = matchIdx + 2;
 
@@ -696,14 +695,17 @@ export default function VibeApp() {
             setChampionPick(_cpResult);
           } catch { setCourses([]); }
 
+          setPicking(null);
           setScreen("result");
         } else {
           // 다음 라운드
+          setPicking(null);
           setBracket(newWinners);
           setMatchIdx(0);
           setRoundWinners([]);
         }
       } else {
+        setPicking(null);
         setMatchIdx(nextIdx);
         setRoundWinners(newWinners);
       }
@@ -1074,6 +1076,7 @@ export default function VibeApp() {
 
           <div className="cards-wrap">
             {[["left", pair[0]], ["right", pair[1]]].map(([side, act], idx) => {
+              if (!act) return null;
               const isPicked = picking === side;
               const isOther = picking && picking !== side;
               const tc = sodaColorRef.current._tourney || ["#eff6ff","#6366f1"];
