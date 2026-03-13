@@ -178,13 +178,22 @@ function matchActivities(answers) {
     const timeSlotMismatch = act.timeSlots && act.timeSlots.length > 0 && !act.timeSlots.includes(currentSlot);
     if (answers.cost === "무료" && !t.cost.includes("무료")) return null;
     if (answers.blacklistGenres?.includes(act.genre)) return null;
+    // 확장 블랙리스트: genre 외 이름/vibe 기반 필터
+    const bl = answers.blacklistGenres || [];
+    if (bl.includes("reading") && (act.name?.includes("독서") || act.name?.includes("책 ") || act.genre === "culture" && act.name?.includes("읽"))) return null;
+    if (bl.includes("streaming") && (act.name?.includes("넷플릭스") || act.name?.includes("유튜브") || act.name?.includes("영상") || act.name?.includes("영화"))) return null;
+    if (bl.includes("meditation") && (act.name?.includes("명상") || act.name?.includes("마음챙김"))) return null;
+    if (bl.includes("drinking") && (act.name?.includes("술") || act.name?.includes("와인") || act.name?.includes("맥주") || act.name?.includes("칵테일") || act.name?.includes("바 "))) return null;
+    if (bl.includes("shopping") && (act.name?.includes("쇼핑") || act.name?.includes("마트") || act.name?.includes("아울렛"))) return null;
+    if (bl.includes("drive") && (act.name?.includes("드라이브") || act.genre === "drive")) return null;
+    if (bl.includes("foodtour") && (act.name?.includes("맛집") || act.name?.includes("먹방") || act.name?.includes("투어") && act.genre === "food")) return null;
     // 계절 필터
     const currentMonth = new Date().getMonth() + 1;
     if (SEASONAL_ACTIVITIES[act.id] && !SEASONAL_ACTIVITIES[act.id].includes(currentMonth)) return null;
     const fishingIds = [70,71,72,73];
     const waterSportIds = [74,75,76,77,78,79,80];
-    if (answers.blacklistGenres?.includes("fishing") && fishingIds.includes(act.id)) return null;
-    if (answers.blacklistGenres?.includes("watersport") && waterSportIds.includes(act.id)) return null;
+    if (bl.includes("fishing") && fishingIds.includes(act.id)) return null;
+    if (bl.includes("watersport") && waterSportIds.includes(act.id)) return null;
 
     // 시간대 불일치 감점 (토너먼트에서 뒤로 밀림)
     if (timeSlotMismatch) score -= 10;
@@ -297,6 +306,8 @@ export default function VibeApp() {
   const [onboardingStep, setOnboardingStep] = useState(0); // 0: 좋아하는 vibe, 1: 블랙리스트
   const [tempVibes, setTempVibes] = useState([]);
   const [tempBlacklist, setTempBlacklist] = useState([]);
+  const [sodaKeys, setSodaKeys] = useState({});
+  const sodaColorRef = useRef({});
   const [expanded, setExpanded] = useState({});
   const [matched, setMatched] = useState([]);
   const [bracket, setBracket] = useState([]);
@@ -735,6 +746,14 @@ export default function VibeApp() {
           { value:"fitness",  emoji:"🏋️", label:"헬스 / 홈트" },
           { value:"learn",    emoji:"📚", label:"강의 / 공부" },
           { value:"digital",  emoji:"💻", label:"코딩 / 작업" },
+          { value:"tidy",     emoji:"🧹", label:"청소 / 정리" },
+          { value:"reading",  emoji:"📖", label:"독서" },
+          { value:"streaming",emoji:"📺", label:"넷플릭스 / 영상" },
+          { value:"meditation",emoji:"🧘", label:"명상" },
+          { value:"drinking", emoji:"🍺", label:"술자리 / 모임" },
+          { value:"shopping", emoji:"🛍️", label:"쇼핑" },
+          { value:"drive",    emoji:"🚗", label:"드라이브" },
+          { value:"foodtour", emoji:"🍜", label:"맛집 탐방" },
         ];
 
         const isFirstRun = !localStorage.getItem("vibe_onboarded");
@@ -747,17 +766,19 @@ export default function VibeApp() {
           return null;
         }
 
-        const btnStyle = (selected, isBlack) => ({
-          width:"100%", aspectRatio:"1", borderRadius:16, display:"flex",
-          flexDirection:"column", alignItems:"center", justifyContent:"center",
-          gap:3, border: selected
-            ? `2px solid ${isBlack ? "#191919" : "#FF4444"}`
-            : "1.5px solid #E0DED8",
-          background: selected ? (isBlack ? "#191919" : "#FFF0F0") : "#fff",
-          color: selected ? (isBlack ? "#fff" : "#CC0000") : "#555",
-          fontSize:10, fontWeight:700, cursor:"pointer",
-          fontFamily:"inherit", transition:"all 0.15s", padding:0,
-        });
+        const SODA_COLORS = [
+          ["#fdf2f8", "#e879f9"], ["#fff7ed", "#f97316"],
+          ["#f0fdf4", "#22d3a5"], ["#fefce8", "#facc15"],
+          ["#eff6ff", "#6366f1"], ["#fff1f2", "#fb7185"],
+          ["#f5f3ff", "#a78bfa"], ["#ecfdf5", "#34d399"],
+        ];
+        const RED_COLORS = [["#fff1f2", "#fb7185"], ["#fef2f2", "#f87171"], ["#fff5f5", "#ff6b6b"]];
+        const BUBBLES = [
+          { left:"8%",size:4,dur:3.2,delay:0.3 },{ left:"18%",size:7,dur:2.8,delay:0.9 },
+          { left:"25%",size:3,dur:3.8,delay:1.6 },{ left:"42%",size:8,dur:3.5,delay:1.2 },
+          { left:"57%",size:6,dur:2.9,delay:0.4 },{ left:"72%",size:9,dur:2.6,delay:0.7 },
+          { left:"88%",size:5,dur:3.0,delay:1.0 },{ left:"47%",size:4,dur:2.7,delay:2.1 },
+        ];
 
         return (
           <div className="screen fade-in" style={{ paddingBottom:32 }}>
@@ -773,15 +794,44 @@ export default function VibeApp() {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:24 }}>
               {VIBE_OPTIONS.map(v => {
                 const sel = tempVibes.includes(v.value);
+                const sk = sodaKeys[v.value] || 0;
+                const colors = sodaColorRef.current[v.value] || SODA_COLORS[0];
                 return (
-                  <button key={v.value} onClick={() =>
-                    setTempVibes(p => p.includes(v.value)
-                      ? p.filter(x=>x!==v.value)
-                      : p.length < 5 ? [...p, v.value] : p)
-                  } style={btnStyle(sel, true)}>
-                    <span style={{fontSize:20}}>{v.emoji}</span>
-                    <span style={{lineHeight:1.2,textAlign:"center",padding:"0 2px"}}>{v.label}</span>
-                  </button>
+                  <div key={v.value}
+                    className={`soda-card${sel ? " sel" : ""}`}
+                    onClick={() => {
+                      if (!sel) {
+                        sodaColorRef.current[v.value] = SODA_COLORS[Math.floor(Math.random() * SODA_COLORS.length)];
+                        setSodaKeys(p => ({ ...p, [v.value]: (p[v.value] || 0) + 1 }));
+                      }
+                      setTempVibes(p => p.includes(v.value) ? p.filter(x=>x!==v.value) : [...p, v.value]);
+                    }}
+                    style={{ borderColor: sel ? colors[1] : undefined, fontFamily:"inherit" }}
+                  >
+                    {sel && (<>
+                      <div className="liquid" key={sk}>
+                        <div className="wave-wrap">
+                          <svg className="wave-svg" viewBox="0 0 200 24" preserveAspectRatio="none">
+                            <path d="M0,12 C25,2 50,22 75,12 C100,2 125,22 150,12 C175,2 200,22 200,12 L200,24 L0,24 Z" fill={colors[0]} />
+                          </svg>
+                        </div>
+                        <div className="liquid-color" style={{ background:`linear-gradient(180deg, ${colors[0]} 0%, ${colors[1]} 100%)` }} />
+                      </div>
+                      {BUBBLES.map((b, i) => (
+                        <div key={`${sk}-b${i}`} style={{
+                          position:"absolute", width:b.size, height:b.size, left:b.left,
+                          bottom:`${6+(i%6)*3}%`, borderRadius:"50%",
+                          background:"rgba(255,255,255,0.78)", zIndex:3,
+                          animation:`bubbleFloat ${b.dur}s ease-out ${b.delay}s infinite`,
+                          opacity:0, "--drift":`${((i%5)-2)*5}px`, pointerEvents:"none",
+                        }} />
+                      ))}
+                    </>)}
+                    <div className="card-content">
+                      <span style={{fontSize:20}}>{v.emoji}</span>
+                      <span className="card-label">{v.label}</span>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -792,14 +842,45 @@ export default function VibeApp() {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:28 }}>
               {BLACKLIST_OPTIONS.map(v => {
                 const sel = tempBlacklist.includes(v.value);
+                const bk = `bl-${v.value}`;
+                const sk = sodaKeys[bk] || 0;
+                const colors = sodaColorRef.current[bk] || RED_COLORS[0];
                 return (
-                  <button key={v.value} onClick={() =>
-                    setTempBlacklist(p => p.includes(v.value)
-                      ? p.filter(x=>x!==v.value) : [...p, v.value])
-                  } style={btnStyle(sel, false)}>
-                    <span style={{fontSize:20}}>{v.emoji}</span>
-                    <span style={{lineHeight:1.2,textAlign:"center",padding:"0 2px"}}>{v.label}</span>
-                  </button>
+                  <div key={v.value}
+                    className={`soda-card${sel ? " sel sel-red" : ""}`}
+                    onClick={() => {
+                      if (!sel) {
+                        sodaColorRef.current[bk] = RED_COLORS[Math.floor(Math.random() * RED_COLORS.length)];
+                        setSodaKeys(p => ({ ...p, [bk]: (p[bk] || 0) + 1 }));
+                      }
+                      setTempBlacklist(p => p.includes(v.value) ? p.filter(x=>x!==v.value) : [...p, v.value]);
+                    }}
+                    style={{ borderColor: sel ? colors[1] : undefined, fontFamily:"inherit" }}
+                  >
+                    {sel && (<>
+                      <div className="liquid" key={sk}>
+                        <div className="wave-wrap">
+                          <svg className="wave-svg" viewBox="0 0 200 24" preserveAspectRatio="none">
+                            <path d="M0,12 C25,2 50,22 75,12 C100,2 125,22 150,12 C175,2 200,22 200,12 L200,24 L0,24 Z" fill={colors[0]} />
+                          </svg>
+                        </div>
+                        <div className="liquid-color" style={{ background:`linear-gradient(180deg, ${colors[0]} 0%, ${colors[1]} 100%)` }} />
+                      </div>
+                      {BUBBLES.map((b, i) => (
+                        <div key={`${sk}-b${i}`} style={{
+                          position:"absolute", width:b.size, height:b.size, left:b.left,
+                          bottom:`${6+(i%6)*3}%`, borderRadius:"50%",
+                          background:"rgba(255,255,255,0.78)", zIndex:3,
+                          animation:`bubbleFloat ${b.dur}s ease-out ${b.delay}s infinite`,
+                          opacity:0, "--drift":`${((i%5)-2)*5}px`, pointerEvents:"none",
+                        }} />
+                      ))}
+                    </>)}
+                    <div className="card-content">
+                      <span style={{fontSize:20}}>{v.emoji}</span>
+                      <span className="card-label">{v.label}</span>
+                    </div>
+                  </div>
                 );
               })}
             </div>
