@@ -767,12 +767,14 @@ export default function VibeApp() {
         }
 
         const SODA_COLORS = [
-          ["#fdf2f8", "#e879f9"], ["#fff7ed", "#f97316"],
-          ["#f0fdf4", "#22d3a5"], ["#fefce8", "#facc15"],
-          ["#eff6ff", "#6366f1"], ["#fff1f2", "#fb7185"],
-          ["#f5f3ff", "#a78bfa"], ["#ecfdf5", "#34d399"],
+          ["#fff7ed", "#f97316"],  // 오렌지
+          ["#f0fdf4", "#22d3a5"],  // 민트
+          ["#fefce8", "#facc15"],  // 노랑
+          ["#eff6ff", "#6366f1"],  // 인디고
+          ["#f5f3ff", "#a78bfa"],  // 보라
+          ["#ecfdf5", "#34d399"],  // 에메랄드
         ];
-        const RED_COLORS = [["#fff1f2", "#fb7185"], ["#fef2f2", "#f87171"], ["#fff5f5", "#ff6b6b"]];
+        const RED_COLORS = [["#fff1f2", "#dc2626"]];
         const BUBBLES = [
           { left:"8%",size:4,dur:3.2,delay:0.3 },{ left:"18%",size:7,dur:2.8,delay:0.9 },
           { left:"25%",size:3,dur:3.8,delay:1.6 },{ left:"42%",size:8,dur:3.5,delay:1.2 },
@@ -801,10 +803,11 @@ export default function VibeApp() {
                     className={`soda-card${sel ? " sel" : ""}`}
                     onClick={() => {
                       if (!sel) {
+                        if (tempVibes.length >= 5) return;
                         sodaColorRef.current[v.value] = SODA_COLORS[Math.floor(Math.random() * SODA_COLORS.length)];
                         setSodaKeys(p => ({ ...p, [v.value]: (p[v.value] || 0) + 1 }));
                       }
-                      setTempVibes(p => p.includes(v.value) ? p.filter(x=>x!==v.value) : [...p, v.value]);
+                      setTempVibes(p => p.includes(v.value) ? p.filter(x=>x!==v.value) : p.length >= 5 ? p : [...p, v.value]);
                     }}
                     style={{ borderColor: sel ? colors[1] : undefined, fontFamily:"inherit" }}
                   >
