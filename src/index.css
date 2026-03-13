@@ -367,19 +367,20 @@ input[type="range"]::-webkit-slider-thumb {
 
 .toss-card.picking-left,
 .toss-card.picking-right {
-  background: #191919;
-  border-color: #191919;
+  background: #fff;
   transform: scale(1.03);
 }
 
 .toss-card.picking-left .card-name,
 .toss-card.picking-right .card-name {
   color: #fff;
+  transition: color 0.3s 0.8s;
 }
 
 .toss-card.picking-left .card-time,
 .toss-card.picking-right .card-time {
   color: rgba(255, 255, 255, 0.6);
+  transition: color 0.3s 0.8s;
 }
 
 .card-emoji {
