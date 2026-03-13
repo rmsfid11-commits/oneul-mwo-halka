@@ -362,15 +362,31 @@ export function generatePlanReason(plan) {
 
   const first = plan[0];
   const last = plan[plan.length - 1];
-  const move = hasMove(plan);
+  const midActs = plan.slice(1, -1);
   const meal = hasMeal(plan);
+  const move = hasMove(plan);
 
-  let middle = "중간에 무리 없이 흐름이 이어지고";
-  if (move && meal) middle = "중간에 바깥 공기랑 먹는 흐름까지 자연스럽게 이어지고";
-  else if (move) middle = "중간에 가볍게 움직이면서 리듬을 바꿀 수 있고";
-  else if (meal) middle = "중간에 먹는 흐름까지 자연스럽게 들어가고";
+  // 중간 활동을 자연스럽게 나열
+  let mid = "";
+  if (midActs.length === 1) {
+    mid = `중간에 ${midActs[0].emoji} ${midActs[0].name}도 끼워넣고`;
+  } else if (midActs.length === 2) {
+    mid = `${midActs[0].emoji} ${midActs[0].name}이랑 ${midActs[1].emoji} ${midActs[1].name}도 사이에 넣고`;
+  } else if (midActs.length >= 3) {
+    mid = `중간중간 ${midActs.length}가지 더 채워넣고`;
+  }
 
-  return `${first.emoji} ${first.name}로 시작해서 ${middle} 마지막엔 ${last.emoji} ${last.name}(으)로 마무리하는 약 ${timeText} 코스야.`;
+  // 밥은 밥이지 "흐름"이 아님
+  if (meal && midActs.length === 0) {
+    mid = "배고프면 밥도 먹고";
+  }
+
+  // 마무리 톤
+  const endNote = move
+    ? `좀 움직이다가 ${last.emoji} ${last.name}(으)로 마무리.`
+    : `${last.emoji} ${last.name}(으)로 마무리.`;
+
+  return `${first.emoji} ${first.name}로 시작, ${mid} ${endNote} 약 ${timeText}.`;
 }
 
 // ── [수정 2] 코스 중복 제거 강화: anchor 동일 = 중복, threshold 60% ──
