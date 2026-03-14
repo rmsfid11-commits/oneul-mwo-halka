@@ -43,8 +43,8 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
   }
 
   // 장소 토너먼트 시작 (engine.js 사용)
-  function startPlaceTournament(pa, ctx) {
-    const bracket = buildTournamentBracket(pa, ctx);
+  function startPlaceTournament(pa, ctx, bracketSize = 16) {
+    const bracket = buildTournamentBracket(pa, ctx, bracketSize);
     setPlaceBracket(bracket);
     setPlaceMatchIdx(0);
     setPlaceRoundWinners([]);
@@ -126,16 +126,26 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             ))}
           </div>
 
-          <button onClick={() => startPlaceTournament({}, null)} style={{
-            width:"100%", padding:17, marginBottom:10,
-            background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            border:"none", borderRadius:16,
-            fontSize:16, fontWeight:800, color:"#fff",
-            cursor:"pointer", fontFamily:"inherit",
-            boxShadow:"0 4px 14px rgba(102,126,234,0.3)"
-          }}>
-            🏆 내 취향 장소 찾기
-          </button>
+          <div style={{ fontSize:11, fontWeight:700, color:"#aaa", letterSpacing:1.5, marginBottom:10 }}>내 취향 장소 찾기</div>
+          <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+            {[
+              { size:4, label:"빠르게", sub:"2번이면 끝", emoji:"🚀" },
+              { size:8, label:"적당히", sub:"7번 고르기", emoji:"⚡" },
+              { size:16, label:"제대로", sub:"15번 풀코스", emoji:"🏆" },
+            ].map(r => (
+              <button key={r.size} onClick={() => startPlaceTournament({}, null, r.size)} style={{
+                flex:1, padding:"14px 8px", borderRadius:14,
+                border:"1.5px solid #E0DED8", background:"#fff",
+                cursor:"pointer", fontFamily:"inherit",
+                display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
+              }}>
+                <span style={{ fontSize:22 }}>{r.emoji}</span>
+                <span style={{ fontSize:13, fontWeight:700, color:"#191919" }}>{r.label}</span>
+                <span style={{ fontSize:10, color:"#aaa" }}>{r.sub}</span>
+              </button>
+            ))}
+          </div>
 
           <button onClick={() => { setPlaceAnswers({ who:null, inOut:null, budget:null, mood:null }); setPlaceContext(null); setPlaceScreen("setup"); }} style={{
             width:"100%", padding:15, background:"#fff",
@@ -229,15 +239,28 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             {placeAnswers.who && placeAnswers.mood ? "장소 추천받기 →" : "누구랑, 기분만 알려줘"}
           </button>
           {placeAnswers.who && placeAnswers.mood && (
-            <button onClick={() => startPlaceTournament(placeAnswers, placeContext)} style={{
-              width:"100%", marginTop:10, padding:"16px",
-              background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              border:"none", borderRadius:16, fontSize:15, fontWeight:800,
-              color:"#fff", cursor:"pointer", fontFamily:"inherit",
-              boxShadow:"0 4px 14px rgba(102,126,234,0.3)"
-            }}>
-              🏆 내 취향 장소 찾기
-            </button>
+            <>
+              <div style={{ fontSize:12, fontWeight:700, color:"#aaa", textAlign:"center", marginTop:16, marginBottom:8 }}>취향 장소 찾기</div>
+              <div style={{ display:"flex", gap:8 }}>
+                {[
+                  { size:4, label:"빠르게", sub:"2번", emoji:"🚀" },
+                  { size:8, label:"적당히", sub:"7번", emoji:"⚡" },
+                  { size:16, label:"제대로", sub:"15번", emoji:"🏆" },
+                ].map(r => (
+                  <button key={r.size} onClick={() => startPlaceTournament(placeAnswers, placeContext, r.size)} style={{
+                    flex:1, padding:"12px 6px", borderRadius:12,
+                    border:"none", background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    cursor:"pointer", fontFamily:"inherit",
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:3,
+                    color:"#fff", boxShadow:"0 2px 8px rgba(102,126,234,0.3)",
+                  }}>
+                    <span style={{ fontSize:18 }}>{r.emoji}</span>
+                    <span style={{ fontSize:13, fontWeight:700 }}>{r.label}</span>
+                    <span style={{ fontSize:10, opacity:0.7 }}>{r.sub}</span>
+                  </button>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}

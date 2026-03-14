@@ -400,26 +400,22 @@ export default function WhatToDo({ answers, setAnswers, sodaKeys, setSodaKeys, s
     return baseSubs;
   }
 
-  function startTournament(isChallenge = false) {
+  function startTournament(isChallenge = false, bracketSize = 16) {
     const history = getHistory();
     const learnedVibes = getLearnedVibes();
-    // learned vibes를 preferredVibes에 합쳐서 매칭
     const enrichedAnswers = {
       ...answers,
       preferredVibes: [...new Set([...(answers.preferredVibes || []), ...learnedVibes])]
     };
     let m = matchActivities(enrichedAnswers);
 
-    // 시간대 보너스 반영
     m = m.map(act => ({ ...act, score: (act.score || 0) + getTimeBonus(act) }))
          .sort((a, b) => b.score - a.score);
 
-    // 도전 모드: 히스토리에 없는 것만
     if (isChallenge) {
       const fresh = m.filter(act => !history.includes(act.id));
-      m = fresh.length >= 8 ? fresh : m; // 8개 미만이면 그냥 전체
+      m = fresh.length >= 8 ? fresh : m;
     } else {
-      // 일반 모드: 최근 나온 것들 뒤로 밀기
       m = m.sort((a, b) => {
         const aNew = history.includes(a.id) ? 1 : 0;
         const bNew = history.includes(b.id) ? 1 : 0;
@@ -428,7 +424,8 @@ export default function WhatToDo({ answers, setAnswers, sodaKeys, setSodaKeys, s
     }
 
     setMatched(m);
-    const pool = [...m.slice(0, 24)].sort(() => Math.random() - 0.5).slice(0, 16);
+    const topN = Math.min(bracketSize + 8, m.length);
+    const pool = [...m.slice(0, topN)].sort(() => Math.random() - 0.5).slice(0, bracketSize);
     setBracket(pool);
     setMatchIdx(0);
     setRoundWinners([]);
@@ -844,9 +841,34 @@ export default function WhatToDo({ answers, setAnswers, sodaKeys, setSodaKeys, s
             );
           })}
 
-          <button className="start-btn" disabled={!canStart} onClick={() => startTournament(false)}>
-            {canStart ? "취향 찾기 시작 →" : `아직 ${missing.length}개 남았어`}
-          </button>
+          {!canStart && (
+            <button className="start-btn" disabled>
+              {`아직 ${missing.length}개 남았어`}
+            </button>
+          )}
+          {canStart && (
+            <>
+              <div style={{ fontSize:13, fontWeight:700, color:"#aaa", textAlign:"center", marginTop:20, marginBottom:10 }}>취향 찾기</div>
+              <div style={{ display:"flex", gap:8 }}>
+                {[
+                  { size:4, label:"빠르게", sub:"2번이면 끝", emoji:"🚀" },
+                  { size:8, label:"적당히", sub:"7번 고르기", emoji:"⚡" },
+                  { size:16, label:"제대로", sub:"15번 풀코스", emoji:"🏆" },
+                ].map(r => (
+                  <button key={r.size} onClick={() => startTournament(false, r.size)} style={{
+                    flex:1, padding:"14px 8px", borderRadius:14,
+                    border:"1.5px solid #E0DED8", background:"#fff",
+                    cursor:"pointer", fontFamily:"inherit",
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                  }}>
+                    <span style={{ fontSize:22 }}>{r.emoji}</span>
+                    <span style={{ fontSize:14, fontWeight:700, color:"#191919" }}>{r.label}</span>
+                    <span style={{ fontSize:11, color:"#aaa" }}>{r.sub}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           {canStart && (
             <button onClick={() => {
               // 토너먼트 스킵: 점수 기반으로 바로 코스 생성
@@ -892,7 +914,7 @@ export default function WhatToDo({ answers, setAnswers, sodaKeys, setSodaKeys, s
             </button>
           )}
           {canStart && (
-            <button onClick={() => startTournament(true)} style={{
+            <button onClick={() => startTournament(true, 8)} style={{
               width:"100%", marginTop:8, padding:"12px",
               background:"transparent", border:"none",
               fontSize:13, fontWeight:600,

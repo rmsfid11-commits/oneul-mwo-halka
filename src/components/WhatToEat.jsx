@@ -102,7 +102,7 @@ function getAfterFood(food) {
 
 export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideTabBar, goToPlaceFromContext }) {
   // ── 음식 탭 상태 ──
-  const [foodScreen, setFoodScreen] = useState("home"); // home | wcQuestions | wcTournament | wcResult | roulette
+  const [foodScreen, setFoodScreen] = useState("home"); // home | wcQuestions | wcRoundPick | wcTournament | wcResult | roulette
   const [foodStep, setFoodStep] = useState(0);
   const [foodAnswers, setFoodAnswers] = useState({});
   const [foodResult, setFoodResult] = useState(null);
@@ -214,9 +214,10 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
     }).filter(Boolean).sort((a, b) => b.score - a.score);
   }
 
-  function startFoodWorldCup() {
+  function startFoodWorldCup(bracketSize = 16) {
     const matched = matchFoods(foodAnswers);
-    const pool = [...matched.slice(0, 24)].sort(() => Math.random() - 0.5).slice(0, 16);
+    const topN = Math.min(bracketSize + 8, matched.length);
+    const pool = [...matched.slice(0, topN)].sort(() => Math.random() - 0.5).slice(0, bracketSize);
     setFoodBracket(pool);
     setFoodMatchIdx(0);
     setFoodRoundWinners([]);
@@ -246,6 +247,14 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           setFoodChampion(newW[0]);
           setFoodPicking(null);
           setFoodScreen("wcResult");
+          // food_history에 저장
+          try {
+            const fh = JSON.parse(localStorage.getItem("food_history") || "[]");
+            const today = new Date().toLocaleDateString("ko-KR", { month:"short", day:"numeric" });
+            fh.push({ id: newW[0].id, name: newW[0].name, emoji: newW[0].emoji, date: today });
+            if (fh.length > 20) fh.splice(0, fh.length - 20);
+            localStorage.setItem("food_history", JSON.stringify(fh));
+          } catch {};
           // 후식 애니메이션 트리거
           setAfterPhase("idle");
           setAfterDots([false,false,false]);
@@ -276,7 +285,31 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
       {/* 홈 */}
       {foodScreen === "home" && (<>
         <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>뭐 먹지? 🍽️</div>
-        <div style={{ fontSize:14, color:"#999", marginBottom:32 }}>오늘 뭐 먹을지 같이 골라보자</div>
+        <div style={{ fontSize:14, color:"#999", marginBottom:20 }}>오늘 뭐 먹을지 같이 골라보자</div>
+
+        {/* 음식 캐러셀 */}
+        <div style={{ overflow:"hidden", marginBottom:24, marginLeft:-20, marginRight:-20 }}>
+          <div style={{
+            display:"flex", gap:10, paddingLeft:20, paddingRight:20,
+            animation:"foodScroll 20s linear infinite",
+            width:"max-content",
+          }}>
+            {(() => {
+              const shuffled = [...foods].sort(() => Math.random() - 0.5).slice(0, 15);
+              const doubled = [...shuffled, ...shuffled];
+              return doubled.map((f, i) => (
+                <div key={`${f.id}-${i}`} style={{
+                  flexShrink:0, background:"#fff", borderRadius:14,
+                  padding:"10px 14px", display:"flex", alignItems:"center", gap:8,
+                  boxShadow:"0 1px 3px rgba(0,0,0,0.05)", minWidth:110,
+                }}>
+                  <span style={{ fontSize:22 }}>{f.emoji}</span>
+                  <span style={{ fontSize:13, fontWeight:600, color:"#2D2D2D", whiteSpace:"nowrap" }}>{f.name}</span>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
 
         <button onClick={() => { setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFoodScreen("wcQuestions"); }} style={{
           width:"100%", padding:"20px", background:"#191919", color:"#fff",
@@ -293,6 +326,34 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         }}>
           🎲 랜덤 룰렛
         </button>
+
+        {/* 최근에 먹은 것 */}
+        {(() => {
+          const history = JSON.parse(localStorage.getItem("food_history") || "[]");
+          if (history.length === 0) return null;
+          const recent = history.slice(-5).reverse();
+          return (
+            <div style={{ marginTop:24 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:"#aaa", marginBottom:10 }}>최근에 먹은 것</div>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                {recent.map((item, i) => {
+                  const food = foods.find(f => f.id === item.id || f.name === item.name);
+                  return (
+                    <div key={i} style={{
+                      background:"#fff", borderRadius:12, padding:"10px 14px",
+                      display:"flex", alignItems:"center", gap:10,
+                      boxShadow:"0 1px 3px rgba(0,0,0,0.04)"
+                    }}>
+                      <span style={{ fontSize:22 }}>{food?.emoji || item.emoji || "🍽️"}</span>
+                      <span style={{ fontSize:14, fontWeight:600, color:"#2D2D2D" }}>{food?.name || item.name}</span>
+                      {item.date && <span style={{ fontSize:11, color:"#ccc", marginLeft:"auto" }}>{item.date}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </>)}
 
       {/* 카드 월드컵 질문 */}
@@ -335,7 +396,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                       setFoodStep(foodStep + 1);
                     } else {
                       setFoodAnswers(next);
-                      setTimeout(() => startFoodWorldCup(), 0);
+                      setFoodScreen("wcRoundPick");
                     }
                   }
                 }} style={{
@@ -367,6 +428,38 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           </button>
         </>);
       })()}
+
+      {/* 라운드 선택 */}
+      {foodScreen === "wcRoundPick" && (
+        <div className="screen fade-in" style={{ paddingTop:60, textAlign:"center" }}>
+          <div style={{ fontSize:40, marginBottom:16 }}>🍽️</div>
+          <div style={{ fontSize:22, fontWeight:800, marginBottom:8 }}>취향 음식 찾기</div>
+          <div style={{ fontSize:14, color:"#999", marginBottom:32 }}>어느 정도로 골라볼까?</div>
+          <div style={{ display:"flex", gap:10, marginBottom:20 }}>
+            {[
+              { size:4, label:"빠르게", sub:"2번이면 끝", emoji:"🚀" },
+              { size:8, label:"적당히", sub:"7번 고르기", emoji:"⚡" },
+              { size:16, label:"제대로", sub:"15번 풀코스", emoji:"🏆" },
+            ].map(r => (
+              <button key={r.size} onClick={() => startFoodWorldCup(r.size)} style={{
+                flex:1, padding:"18px 8px", borderRadius:16,
+                border:"1.5px solid #E0DED8", background:"#fff",
+                cursor:"pointer", fontFamily:"inherit",
+                display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
+              }}>
+                <span style={{ fontSize:28 }}>{r.emoji}</span>
+                <span style={{ fontSize:15, fontWeight:700, color:"#191919" }}>{r.label}</span>
+                <span style={{ fontSize:11, color:"#aaa" }}>{r.sub}</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setFoodScreen("wcQuestions")} style={{
+            background:"transparent", border:"none", fontSize:13,
+            color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+          }}>← 뒤로</button>
+        </div>
+      )}
 
       {/* 카드 월드컵 토너먼트 */}
       {foodScreen === "wcTournament" && (() => {

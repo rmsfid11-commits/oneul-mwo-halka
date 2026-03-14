@@ -48,6 +48,10 @@ body {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+@keyframes foodScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 @keyframes liquidRise {
   0%   { transform: translateY(115%); }
   58%  { transform: translateY(-9%); }

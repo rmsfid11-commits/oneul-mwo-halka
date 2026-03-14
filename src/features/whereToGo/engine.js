@@ -135,7 +135,7 @@ export function recommendPlace(pa, ctx) {
  * @param {Object|null} ctx - 탭 간 연결 context
  * @returns {Array} 16개 장소 bracket
  */
-export function buildTournamentBracket(pa, ctx) {
+export function buildTournamentBracket(pa, ctx, bracketSize = 16) {
   const curSlot = getCurrentSlot();
   const moodVibes = PLACE_MOOD_VIBES[pa?.mood] || [];
 
@@ -164,7 +164,8 @@ export function buildTournamentBracket(pa, ctx) {
     return { ...p, score };
   }).sort((a, b) => b.score - a.score);
 
-  return [...scored.slice(0, 24)].sort(() => Math.random() - 0.5).slice(0, 16);
+  const topN = Math.min(bracketSize + 8, scored.length);
+  return [...scored.slice(0, topN)].sort(() => Math.random() - 0.5).slice(0, bracketSize);
 }
 
 // PLACE_MOOD_VIBES export (혹시 외부에서 필요할 때)
