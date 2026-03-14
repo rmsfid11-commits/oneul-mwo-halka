@@ -1899,39 +1899,55 @@ export default function VibeApp() {
                     ))}
                   </div>
 
-                  {/* 후식 카드 */}
+                  {/* 후식 카드 + 연기 효과 */}
                   {afterPhase === "show" && (
-                    <div style={{ position:"relative", width:"100%", overflow:"visible" }}>
-                      {/* 스파크 */}
+                    <div style={{ position:"relative", width:"100%", overflow:"visible", minHeight:180 }}>
+                      {/* 연기 블롭 22개 — 카드 중앙에서 퍼엉 퍼져나감 */}
                       <div key={afterBurstKey} style={{ position:"absolute", left:"50%", top:"50%", width:0, height:0, zIndex:10, pointerEvents:"none", overflow:"visible" }}>
-                        {Array.from({length:14}).map((_, i) => {
-                          const rad = (rand(0,360)*Math.PI)/180;
-                          const dist = rand(50,110);
-                          const sz = rand(3,7);
-                          const C = ["#ff6b35","#facc15","#34d399","#6366f1","#f43f5e","#22d3a5","#fb923c","#a78bfa"];
+                        {Array.from({length:22}).map((_, i) => {
+                          const angle = (i / 22) * 360 + rand(-10, 10);
+                          const rad = (angle * Math.PI) / 180;
+                          const hw = 150, hh = 90;
+                          const ox = Math.cos(rad) * hw * rand(0.15, 0.4) + "px";
+                          const oy = Math.sin(rad) * hh * rand(0.15, 0.4) + "px";
+                          const tx = Math.cos(rad) * hw * rand(0.9, 1.3) + rand(-12,12) + "px";
+                          const ty = Math.sin(rad) * hh * rand(0.9, 1.3) + rand(-12,12) + "px";
+                          const ex = Math.cos(rad) * hw * rand(1.8, 2.8) + rand(-18,18) + "px";
+                          const ey = Math.sin(rad) * hh * rand(1.8, 2.8) + rand(-18,18) - rand(10,40) + "px";
+                          const size = rand(70, 150);
+                          const grays = [
+                            "rgba(218,215,211,0.85)","rgba(203,200,196,0.8)",
+                            "rgba(230,227,223,0.82)","rgba(188,185,181,0.76)",
+                            "rgba(238,235,231,0.74)",
+                          ];
                           return (
-                            <div key={i} style={{
-                              position:"absolute", width:sz, height:sz,
-                              left:"50%", top:"50%", marginLeft:-sz/2, marginTop:-sz/2,
-                              borderRadius:"50%", background:C[i%C.length], pointerEvents:"none",
-                              animation:`sparkFly ${rand(0.3,0.55)}s ease-out ${rand(0,0.06)}s forwards`,
-                              "--fx": Math.cos(rad)*dist+"px", "--fy": Math.sin(rad)*dist+"px",
+                            <div key={i} className="smoke-blob" style={{
+                              width:size, height:size,
+                              marginLeft:-size/2, marginTop:-size/2,
+                              background:grays[i%grays.length],
+                              filter:"blur(18px)",
+                              "--ox":ox, "--oy":oy,
+                              "--tx":tx, "--ty":ty,
+                              "--ex":ex, "--ey":ey,
+                              "--dur":rand(1.3,2.2)+"s",
+                              "--delay":rand(0,0.15)+"s",
                             }} />
                           );
                         })}
                       </div>
 
+                      {/* 후식 카드 — 연기 뒤에서 스으윽 */}
                       <div key={afterBurstKey + "-card"} style={{
                         width:"100%", borderRadius:20, padding:"26px 20px",
                         background:"#fff", boxShadow:"0 8px 32px rgba(0,0,0,0.11)",
                         border:"1.5px solid #E8E5E0", textAlign:"center",
                         position:"relative", zIndex:5,
-                        animation:"cardShaar 1.1s cubic-bezier(0.22,1,0.36,1) forwards",
+                        animation:"cardShaar 1.4s cubic-bezier(0.22,1,0.36,1) forwards",
                       }}>
-                        <div style={{ fontSize:11, fontWeight:700, color:"#bbb", letterSpacing:1.5, marginBottom:10, animation:"fadeIn 0.38s ease-out forwards" }}>🎉 후식 추천</div>
-                        <div style={{ fontSize:48, marginBottom:6, animation:"fadeIn 0.38s ease-out 0.18s forwards", opacity:0 }}>{af.emoji}</div>
-                        <div style={{ fontSize:19, fontWeight:900, color:"#191919", marginBottom:5, animation:"fadeIn 0.38s ease-out 0.28s forwards", opacity:0 }}>{af.name}</div>
-                        <div style={{ fontSize:13, color:"#888", fontWeight:600, animation:"fadeIn 0.38s ease-out 0.38s forwards", opacity:0 }}>{af.reason}</div>
+                        <div style={{ fontSize:11, fontWeight:700, color:"#bbb", letterSpacing:1.5, marginBottom:10, animation:"fadeIn 0.4s ease-out 0.5s forwards", opacity:0 }}>🎉 후식 추천</div>
+                        <div style={{ fontSize:48, marginBottom:6, animation:"fadeIn 0.4s ease-out 0.7s forwards", opacity:0 }}>{af.emoji}</div>
+                        <div style={{ fontSize:19, fontWeight:900, color:"#191919", marginBottom:5, animation:"fadeIn 0.4s ease-out 0.85s forwards", opacity:0 }}>{af.name}</div>
+                        <div style={{ fontSize:13, color:"#888", fontWeight:600, animation:"fadeIn 0.4s ease-out 1.0s forwards", opacity:0 }}>{af.reason}</div>
                       </div>
                     </div>
                   )}

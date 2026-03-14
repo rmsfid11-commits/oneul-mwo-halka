@@ -472,9 +472,10 @@ input[type="range"]::-webkit-slider-thumb {
   50%       { transform: scale(1.3); opacity: 1; }
 }
 @keyframes cardShaar {
-  0%   { opacity: 0; filter: blur(20px); transform: scale(0.96); }
-  30%  { opacity: 0.6; filter: blur(10px); transform: scale(0.98); }
-  70%  { opacity: 0.9; filter: blur(3px); }
+  0%   { opacity: 0; filter: blur(24px); transform: scale(0.92); }
+  20%  { opacity: 0.3; filter: blur(16px); transform: scale(0.95); }
+  45%  { opacity: 0.6; filter: blur(8px); transform: scale(0.97); }
+  70%  { opacity: 0.85; filter: blur(3px); transform: scale(0.99); }
   100% { opacity: 1; filter: blur(0px); transform: scale(1); }
 }
 @keyframes sparkFly {
@@ -486,6 +487,16 @@ input[type="range"]::-webkit-slider-thumb {
   18%  { opacity: 0.92; }
   60%  { transform: translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(1.3); opacity: 0.72; }
   100% { transform: translate(-50%,-50%) translate(var(--ex),var(--ey)) scale(2.4); opacity: 0; }
+}
+
+.smoke-blob {
+  position: absolute;
+  left: 50%; top: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: smokeBurst var(--dur) ease-out var(--delay) forwards;
+  opacity: 0;
 }
 
 /* ─── 스크롤바 숨기기 ─── */
