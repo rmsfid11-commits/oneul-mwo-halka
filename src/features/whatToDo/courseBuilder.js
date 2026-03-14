@@ -428,6 +428,47 @@ function dedupePlans(plans) {
   return result;
 }
 
+// ── 시간대별 활동 가중치 ──
+function getWeight(activity, slot) {
+  const genre = activity.genre;
+  const tags = activity.tags || {};
+  const energy = tags.energy || [];
+  const loc = tags.location || [];
+
+  let w = 0;
+
+  if (slot === "morning") {
+    if (energy.includes("high") || energy.includes("mid")) w += 3;
+    if (loc.includes("out")) w += 2;
+    if (["nature", "fitness", "sport", "move"].includes(genre)) w += 2;
+    if (["food", "cooking"].includes(genre)) w -= 1;
+  } else if (slot === "afternoon") {
+    if (["travel", "craft", "sport", "nature"].includes(genre)) w += 2;
+    if (energy.includes("mid")) w += 1;
+  } else if (slot === "evening") {
+    if (["cooking", "food"].includes(genre)) w += 3;
+    if (["social"].includes(genre)) w += 2;
+  } else if (slot === "night") {
+    if (loc.includes("out")) w -= 3;
+    if (["healing", "relax", "culture"].includes(genre)) w += 3;
+    if (loc.includes("home")) w += 2;
+  }
+
+  return w;
+}
+
+// ── 시간대별 활동 순서 정렬 (anchor 유지) ──
+function sortByTimeSlot(plan, timeSlot) {
+  if (plan.length <= 2) return plan;
+
+  const slot = timeSlot || "afternoon";
+  const anchor = plan[0];
+  const rest = plan.slice(1);
+  const sorted = [...rest].sort((a, b) => getWeight(b, slot) - getWeight(a, slot));
+
+  return [anchor, ...sorted];
+}
+
 // ── 메인: 코스 3개 조립 ──
 export function buildCoursePlans(activities, prefs, championId) {
   const totalMinutes = (prefs.hours || 2) * 60;
@@ -513,12 +554,15 @@ export function buildCoursePlans(activities, prefs, championId) {
 
   const uniquePlans = dedupePlans(rawPlans);
 
-  return uniquePlans.slice(0, 3).map((plan) => ({
-    activities: plan,
-    title: generatePlanTitle(plan, prefs),
-    reason: generatePlanReason(plan),
-    totalMinutes: plan.reduce((sum, a) => sum + getDuration(a), 0),
-  }));
+  return uniquePlans.slice(0, 3).map((plan) => {
+    const sorted = sortByTimeSlot(plan, prefs.timeSlot);
+    return {
+      activities: sorted,
+      title: generatePlanTitle(sorted, prefs),
+      reason: generatePlanReason(sorted),
+      totalMinutes: sorted.reduce((sum, a) => sum + getDuration(a), 0),
+    };
+  });
 }
 
 // ── 오늘의 픽: BEST MATCH 코스의 anchor에서 추출 ──
