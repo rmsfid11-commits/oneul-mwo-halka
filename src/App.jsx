@@ -2503,6 +2503,20 @@ export default function VibeApp() {
                   평균 체류 {placeResult.main.stayDuration >= 60 ? `${Math.floor(placeResult.main.stayDuration/60)}시간${placeResult.main.stayDuration%60 > 0 ? ` ${placeResult.main.stayDuration%60}분` : ""}` : `${placeResult.main.stayDuration}분`}
                 </div>
               )}
+              <div style={{ display:"flex", gap:8, marginTop:14 }}>
+                <a href={`https://www.google.com/maps/search/${encodeURIComponent(placeResult.main.name + " 근처")}`}
+                  target="_blank" rel="noopener noreferrer" style={{
+                    flex:1, padding:"10px", borderRadius:10, background:"rgba(255,255,255,0.2)",
+                    color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
+                    textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)"
+                  }}>📍 구글맵</a>
+                <a href={`https://map.kakao.com/link/search/${encodeURIComponent(placeResult.main.name)}`}
+                  target="_blank" rel="noopener noreferrer" style={{
+                    flex:1, padding:"10px", borderRadius:10, background:"rgba(255,255,255,0.2)",
+                    color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
+                    textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)"
+                  }}>🗺️ 카카오맵</a>
+              </div>
             </div>
 
             {/* 대안 */}
@@ -2527,6 +2541,18 @@ export default function VibeApp() {
                               padding:"2px 8px", fontSize:10, color:"#999"
                             }}>#{tag}</span>
                           ))}
+                        </div>
+                        <div style={{ display:"flex", gap:6, marginTop:8 }}>
+                          <a href={`https://www.google.com/maps/search/${encodeURIComponent(p.name + " 근처")}`}
+                            target="_blank" rel="noopener noreferrer" style={{
+                              padding:"4px 10px", borderRadius:8, background:"#F5F3EE",
+                              fontSize:10, fontWeight:700, color:"#888", textDecoration:"none"
+                            }}>📍 구글맵</a>
+                          <a href={`https://map.kakao.com/link/search/${encodeURIComponent(p.name)}`}
+                            target="_blank" rel="noopener noreferrer" style={{
+                              padding:"4px 10px", borderRadius:8, background:"#F5F3EE",
+                              fontSize:10, fontWeight:700, color:"#888", textDecoration:"none"
+                            }}>🗺️ 카카오맵</a>
                         </div>
                       </div>
                     </div>
