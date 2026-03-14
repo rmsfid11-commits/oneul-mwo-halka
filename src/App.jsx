@@ -609,7 +609,7 @@ export default function VibeApp() {
           setPlaceResult({
             main: newW[0],
             alternatives: alts,
-            reason: "장소 월드컵 우승",
+            reason: "취향 장소 찾기 우승",
           });
         } else {
           setPlacePicking(null);
@@ -1812,7 +1812,7 @@ export default function VibeApp() {
               border:"none", borderRadius:16, fontSize:16, fontWeight:800,
               cursor:"pointer", fontFamily:"inherit", marginBottom:12
             }}>
-              🥊 카드 월드컵
+              🥊 내 취향 음식 찾기
             </button>
 
             <button onClick={() => { setRouletteCat("all"); setRouletteFood(null); setSpinDisplay(null); setFoodScreen("roulette"); }} style={{
@@ -2268,6 +2268,17 @@ export default function VibeApp() {
               ))}
             </div>
 
+            <button onClick={() => startPlaceTournament({}, null)} style={{
+              width:"100%", padding:17, marginBottom:10,
+              background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              border:"none", borderRadius:16,
+              fontSize:16, fontWeight:800, color:"#fff",
+              cursor:"pointer", fontFamily:"inherit",
+              boxShadow:"0 4px 14px rgba(102,126,234,0.3)"
+            }}>
+              🏆 내 취향 장소 찾기
+            </button>
+
             <button onClick={() => { setPlaceAnswers({ who:null, inOut:null, budget:null, mood:null }); setPlaceContext(null); setPlaceScreen("setup"); }} style={{
               width:"100%", padding:15, background:"#fff",
               border:"1.5px solid #E0DED8", borderRadius:16,
@@ -2361,12 +2372,13 @@ export default function VibeApp() {
             </button>
             {placeAnswers.who && placeAnswers.mood && (
               <button onClick={() => startPlaceTournament(placeAnswers, placeContext)} style={{
-                width:"100%", marginTop:10, padding:"15px",
-                background:"#fff", border:"1.5px solid #E0DED8",
-                borderRadius:16, fontSize:15, fontWeight:700,
-                color:"#555", cursor:"pointer", fontFamily:"inherit"
+                width:"100%", marginTop:10, padding:"16px",
+                background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                border:"none", borderRadius:16, fontSize:15, fontWeight:800,
+                color:"#fff", cursor:"pointer", fontFamily:"inherit",
+                boxShadow:"0 4px 14px rgba(102,126,234,0.3)"
               }}>
-                🏆 장소 월드컵으로 고르기
+                🏆 내 취향 장소 찾기
               </button>
             )}
           </div>
