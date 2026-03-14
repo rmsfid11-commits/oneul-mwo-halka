@@ -69,8 +69,16 @@ function scorePlaces(pool, pa, ctx, curSlot) {
       if (ctx.activity.vibe && p.vibe?.some(v => ctx.activity.vibe.includes(v))) score += 3;
     }
     if (ctx?.from === "whatToEat") {
-      if (p.tags?.some(t => ["맛집","먹방","먹거리"].includes(t))) score += 4;
-      if (["맛집 탐방","전통시장","포장마차/야시장"].includes(p.name)) score += 3;
+      // 음식 관련 장소 강력 보너스
+      const foodPlaceTypes = ["cafe", "restaurant", "market", "bar"];
+      const isFoodPlace = foodPlaceTypes.some(t => p.type?.includes(t))
+        || p.tags?.some(t => ["맛집","먹방","먹거리","카페","브런치","디저트","길거리음식"].includes(t))
+        || ["맛집 탐방","전통시장","포장마차/야시장","브런치 카페","편의점 앞 벤치"].includes(p.name);
+      if (isFoodPlace) score += 10;
+      // 음식과 무관한 장소 페널티 (마사지, 스파, 운동 등)
+      const nonFoodTypes = ["relax", "sport", "nature"];
+      const isNonFood = !isFoodPlace && nonFoodTypes.some(t => p.type?.includes(t));
+      if (isNonFood) score -= 5;
     }
 
     score += Math.random() * 1.5;
@@ -144,7 +152,14 @@ export function buildTournamentBracket(pa, ctx) {
     if (ctx?.from === "whatToDo" && ctx.activity?.vibe) {
       score += p.vibe.filter(v => ctx.activity.vibe.includes(v)).length * 2;
     }
-    if (ctx?.from === "whatToEat" && p.tags?.some(t => ["맛집","먹방","먹거리"].includes(t))) score += 3;
+    if (ctx?.from === "whatToEat") {
+      const foodPlaceTypes = ["cafe", "restaurant", "market", "bar"];
+      const isFoodPlace = foodPlaceTypes.some(t => p.type?.includes(t))
+        || p.tags?.some(t => ["맛집","먹방","먹거리","카페","브런치","디저트","길거리음식"].includes(t));
+      if (isFoodPlace) score += 6;
+      const nonFoodTypes = ["relax", "sport", "nature"];
+      if (!isFoodPlace && nonFoodTypes.some(t => p.type?.includes(t))) score -= 4;
+    }
     score += Math.random() * 1;
     return { ...p, score };
   }).sort((a, b) => b.score - a.score);
