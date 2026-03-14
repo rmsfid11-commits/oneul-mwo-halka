@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { places } from '../data/places.js';
-
-// 기분 → vibe 매핑
-const PLACE_MOOD_VIBES = {
-  chill: ["고요함","힐링","평화로움","느긋함","편안한"],
-  active: ["활동적","신나는","재미","해방감","성취감"],
-  romantic: ["감성","로맨틱","특별함","영감","지적"],
-  random: [],
-};
+import { recommendPlace, buildTournamentBracket } from '../features/whereToGo/engine.js';
 
 export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideTabBar, pendingPlaceContext, onClearPendingContext }) {
   // ── 장소 탭 상태 ──
@@ -43,124 +35,16 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
     return () => onHideTabBar(false);
   }, [placeScreen, onHideTabBar]);
 
-  // 장소 추천 핵심 함수
+  // 장소 추천 (engine.js 사용)
   function doPlaceRecommend(pa, ctx) {
-    const hour = new Date().getHours();
-    const curSlot = hour < 6 ? "night" : hour < 11 ? "morning" : hour < 14 ? "afternoon" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
-    const moodVibes = PLACE_MOOD_VIBES[pa?.mood] || [];
-
-    // 1단계: 하드 필터
-    const filtered = places.filter(p => {
-      if (p.timeSlots && !p.timeSlots.includes(curSlot)) return false;
-      if (pa?.inOut === "indoor" && p.type.includes("outdoor") && !p.type.includes("indoor")) return false;
-      if (pa?.inOut === "outdoor" && p.type.includes("indoor") && !p.type.includes("outdoor")) return false;
-      if (pa?.who === "alone" && p.withWho && !p.withWho.includes("alone")) return false;
-      return true;
-    });
-
-    const pool = filtered.length >= 3 ? filtered : places.filter(p => {
-      if (pa?.who === "alone" && p.withWho && !p.withWho.includes("alone")) return false;
-      return true;
-    });
-
-    // 2단계: 스코어링
-    const scored = pool.map(p => {
-      let score = 0;
-
-      // 분위기 매칭 +4
-      if (moodVibes.length > 0) {
-        score += p.vibe.filter(v => moodVibes.includes(v)).length * 4;
-      }
-
-      // 시간대 매칭 +3
-      if (p.timeSlots?.includes(curSlot)) score += 3;
-
-      // 누구랑 매칭 +3
-      if (pa?.who && p.withWho?.includes(pa.who)) score += 3;
-
-      // 예산 매칭 +2
-      if (pa?.budget && p.budget?.includes(pa.budget)) score += 2;
-
-      // 밤에 야외 페널티
-      if (curSlot === "night" && p.type.includes("outdoor") && !p.name?.includes("야경")) score -= 2;
-
-      // 혼자인데 데이트 태그 페널티
-      if (pa?.who === "alone" && p.tags?.some(t => t.includes("데이트"))) score -= 2;
-
-      // 연인 로맨틱 보너스
-      if (pa?.who === "partner" && p.vibe?.includes("로맨틱")) score += 3;
-
-      // 가족 보너스
-      if (pa?.who === "family" && p.vibe?.some(v => ["활동적","자유로운","평화로움"].includes(v))) score += 2;
-
-      // 다른 탭에서 넘어온 경우 context 보너스
-      if (ctx?.from === "whatToDo" && ctx.activity) {
-        if (ctx.activity.vibe && p.vibe?.some(v => ctx.activity.vibe.includes(v))) score += 3;
-      }
-      if (ctx?.from === "whatToEat") {
-        if (p.tags?.some(t => ["맛집","먹방","먹거리"].includes(t))) score += 4;
-        if (["맛집 탐방","전통시장","포장마차/야시장"].includes(p.name)) score += 3;
-      }
-
-      score += Math.random() * 1.5;
-      return { place: p, score };
-    });
-
-    scored.sort((a, b) => b.score - a.score);
-
-    // 추천 이유 생성
-    const reasons = [];
-    if (ctx?.from === "whatToDo") reasons.push(`${ctx.activity?.emoji || "✨"} ${ctx.activity?.name} 하기 좋은 곳`);
-    else if (ctx?.from === "whatToEat") reasons.push(`${ctx.food?.emoji || "🍽️"} ${ctx.food?.name || "맛집"} 먹으러`);
-    else {
-      const moodLabel = { chill:"조용히 쉬고 싶을 때", active:"활동적으로 놀 때", romantic:"감성 충전" };
-      if (pa?.mood && moodLabel[pa.mood]) reasons.push(moodLabel[pa.mood]);
-    }
-    const slotLabel = { morning:"아침", afternoon:"오후", evening:"저녁", night:"늦은 밤" };
-    reasons.push(slotLabel[curSlot] + " 시간대");
-    const whoLabel = { alone:"혼자", partner:"연인과 함께", family:"가족과 함께", friend:"친구와 함께" };
-    if (pa?.who && whoLabel[pa.who]) reasons.push(whoLabel[pa.who]);
-
-    setPlaceResult({
-      main: scored[0]?.place,
-      alternatives: scored.slice(1, 4).map(s => s.place),
-      reason: reasons.join(" · "),
-    });
+    const result = recommendPlace(pa, ctx);
+    setPlaceResult(result);
     setPlaceScreen("result");
   }
 
-  // 장소 토너먼트: 후보 필터링 + 시작
+  // 장소 토너먼트 시작 (engine.js 사용)
   function startPlaceTournament(pa, ctx) {
-    const hour = new Date().getHours();
-    const curSlot = hour < 6 ? "night" : hour < 11 ? "morning" : hour < 14 ? "afternoon" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
-    const moodVibes = PLACE_MOOD_VIBES[pa?.mood] || [];
-
-    // 필터: 시간대 + 실내/야외 + 누구랑
-    const filtered = places.filter(p => {
-      if (p.timeSlots && !p.timeSlots.includes(curSlot)) return false;
-      if (pa?.inOut === "indoor" && p.type.includes("outdoor") && !p.type.includes("indoor")) return false;
-      if (pa?.inOut === "outdoor" && p.type.includes("indoor") && !p.type.includes("outdoor")) return false;
-      if (pa?.who === "alone" && p.withWho && !p.withWho.includes("alone")) return false;
-      return true;
-    });
-    const pool = filtered.length >= 8 ? filtered : places;
-
-    // 스코어 기반 정렬
-    const scored = pool.map(p => {
-      let score = 0;
-      if (moodVibes.length > 0) score += p.vibe.filter(v => moodVibes.includes(v)).length * 3;
-      if (p.timeSlots?.includes(curSlot)) score += 2;
-      if (pa?.who && p.withWho?.includes(pa.who)) score += 2;
-      if (pa?.budget && p.budget?.includes(pa.budget)) score += 1;
-      if (ctx?.from === "whatToDo" && ctx.activity?.vibe) {
-        score += p.vibe.filter(v => ctx.activity.vibe.includes(v)).length * 2;
-      }
-      if (ctx?.from === "whatToEat" && p.tags?.some(t => ["맛집","먹방","먹거리"].includes(t))) score += 3;
-      score += Math.random() * 1;
-      return { ...p, score };
-    }).sort((a, b) => b.score - a.score);
-
-    const bracket = [...scored.slice(0, 24)].sort(() => Math.random() - 0.5).slice(0, 16);
+    const bracket = buildTournamentBracket(pa, ctx);
     setPlaceBracket(bracket);
     setPlaceMatchIdx(0);
     setPlaceRoundWinners([]);
