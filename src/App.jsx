@@ -1858,34 +1858,22 @@ export default function VibeApp() {
             <div style={{ textAlign:"center", marginBottom:24 }}>
               <div style={{ fontSize:11, fontWeight:700, color:"#aaa", letterSpacing:1.5, marginBottom:12 }}>🏆 오늘의 음식</div>
 
-              {/* 메인 카드 (뒤집기) */}
-              <div style={{ perspective:"800px", cursor:"pointer" }} onClick={() => toggleFoodFlip(foodChampion.id)}>
-                <div style={{
-                  transformStyle:"preserve-3d", transition:"transform 0.5s cubic-bezier(0.4,0,0.2,1)",
-                  transform: flippedFoods.has(foodChampion.id) ? "rotateY(180deg)" : "rotateY(0deg)",
-                  position:"relative", minHeight:220,
-                }}>
-                  {/* 앞면 */}
-                  <div style={{
-                    position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
-                    background:"#191919", borderRadius:24, padding:"32px 24px", textAlign:"center", color:"#fff"
-                  }}>
-                    <div style={{ fontSize:64, marginBottom:12 }}>{foodChampion.emoji}</div>
-                    <div style={{ fontSize:26, fontWeight:900, marginBottom:8 }}>{foodChampion.name}</div>
-                    <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.5, marginBottom:12 }}>{foodChampion.summary}</div>
-                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>탭하면 상식이 나와</div>
-                  </div>
-                  {/* 뒷면 */}
-                  <div style={{
-                    position:"absolute", width:"100%", backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
-                    transform:"rotateY(180deg)",
-                    background:"#191919", borderRadius:24, padding:"32px 24px", textAlign:"center", color:"#fff"
-                  }}>
-                    <div style={{ fontSize:36, marginBottom:12 }}>💡</div>
-                    <div style={{ fontSize:18, fontWeight:900, marginBottom:12 }}>{foodChampion.name} 상식</div>
-                    <div style={{ fontSize:14, color:"rgba(255,255,255,0.85)", lineHeight:1.7 }}>{foodChampion.trivia}</div>
-                  </div>
-                </div>
+              {/* 메인 카드 */}
+              <div style={{
+                background:"#191919", borderRadius:24, padding:"32px 24px", textAlign:"center", color:"#fff",
+                cursor:"pointer", animation:"fadeIn 0.4s ease-out",
+              }} onClick={() => toggleFoodFlip(foodChampion.id)}>
+                {!flippedFoods.has(foodChampion.id) ? (<>
+                  <div style={{ fontSize:64, marginBottom:12 }}>{foodChampion.emoji}</div>
+                  <div style={{ fontSize:26, fontWeight:900, marginBottom:8 }}>{foodChampion.name}</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.5, marginBottom:12 }}>{foodChampion.summary}</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>탭하면 상식이 나와</div>
+                </>) : (<>
+                  <div style={{ fontSize:36, marginBottom:12 }}>💡</div>
+                  <div style={{ fontSize:18, fontWeight:900, marginBottom:12 }}>{foodChampion.name} 상식</div>
+                  <div style={{ fontSize:14, color:"rgba(255,255,255,0.85)", lineHeight:1.7 }}>{foodChampion.trivia}</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:12 }}>탭하면 돌아가</div>
+                </>)}
               </div>
             </div>
 
@@ -1973,7 +1961,17 @@ export default function VibeApp() {
                   <div style={{ fontSize:13, fontWeight:700, color:"#999", marginBottom:10 }}>아까 아쉽게 탈락한 것들</div>
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10 }}>
                     {losers.map(f => (
-                      <div key={f.id} onClick={() => { setFoodChampion(f); setShowFoodRunnerUps(false); setFlippedFoods(new Set()); }} style={{
+                      <div key={f.id} onClick={() => {
+                setFoodChampion(f); setShowFoodRunnerUps(false); setFlippedFoods(new Set());
+                // 후식 애니메이션 재트리거
+                setAfterPhase("idle"); setAfterDots([false,false,false]);
+                afterTimers.current.forEach(clearTimeout); afterTimers.current = [];
+                const t1 = setTimeout(() => { setAfterPhase("dots"); setAfterDots([true,false,false]); }, 800);
+                const t2 = setTimeout(() => setAfterDots([true,true,false]), 1300);
+                const t3 = setTimeout(() => setAfterDots([true,true,true]), 1800);
+                const t4 = setTimeout(() => { setAfterBurstKey(k => k+1); setAfterPhase("show"); }, 2400);
+                afterTimers.current = [t1,t2,t3,t4];
+              }} style={{
                         background:"#fff", borderRadius:16, padding:"18px 14px",
                         textAlign:"center", cursor:"pointer",
                         boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
