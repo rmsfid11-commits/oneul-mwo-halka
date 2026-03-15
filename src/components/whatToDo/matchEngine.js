@@ -90,6 +90,8 @@ export function matchActivities(answers, ACTIVITIES) {
     // 시간대 감점
     const currentSlot = getTimeSlot();
     const timeSlotMismatch = act.timeSlots && act.timeSlots.length > 0 && !act.timeSlots.includes(currentSlot);
+    // 이름에 시간대가 명시된 활동은 해당 시간대가 아니면 하드 필터
+    if (timeSlotMismatch && (act.name?.includes("새벽") || act.name?.includes("밤에") || act.name?.includes("야경"))) return null;
     if (answers.cost === "무료" && !t.cost?.includes("무료")) return null;
     if (answers.blacklistGenres?.includes(act.genre)) return null;
     // 확장 블랙리스트

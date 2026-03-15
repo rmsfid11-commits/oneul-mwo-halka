@@ -11593,9 +11593,6 @@ export const activities = [
       "조금"
     ],
     timeSlots: [
-      "morning",
-      "afternoon",
-      "evening",
       "night"
     ],
     weatherFit: [
@@ -12377,8 +12374,7 @@ export const activities = [
       "조금"
     ],
     timeSlots: [
-      "afternoon",
-      "evening"
+      "night"
     ],
     weatherFit: [
       "sunny",
@@ -12460,8 +12456,6 @@ export const activities = [
       "조금"
     ],
     timeSlots: [
-      "morning",
-      "afternoon",
       "evening",
       "night"
     ],
