@@ -644,9 +644,11 @@ export function extractChampion(plans, prefs = {}) {
   };
 
   const needStr = NEED_LABEL[need] || "";
-  const subStr = allSubs.length > 0
-    ? SUB_LABEL[allSubs[0]] || allSubs[0]
-    : "";
+
+  // 활동의 vibe와 겹치는 sub만 사용 (안 겹치면 엉뚱한 이유가 됨)
+  const actVibes = activity.vibe || [];
+  const matchingSub = allSubs.find(s => actVibes.includes(s));
+  const subStr = matchingSub ? (SUB_LABEL[matchingSub] || matchingSub) : "";
 
   let reason = "";
   if (subStr && needStr) {
