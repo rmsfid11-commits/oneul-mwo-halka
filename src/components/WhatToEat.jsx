@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { foods } from '../data/foods.js';
+import TournamentCard from './shared/TournamentCard.jsx';
+import { SODA_COLORS } from './whatToDo/constants.js';
 
 // ─── 뭐 먹지 카드 월드컵 질문 ────────────────────────────────
 const FOOD_WC_QUESTIONS = [
@@ -126,6 +128,12 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
   const [afterBurstKey, setAfterBurstKey] = useState(0);
   const afterTimers = useRef([]);
 
+  // 캐러셀용 음식 목록 (한번만 생성)
+  const carouselFoods = useMemo(() => {
+    const shuffled = [...foods].sort(() => Math.random() - 0.5).slice(0, 15);
+    return [...shuffled, ...shuffled]; // 무한 스크롤용 복제
+  }, []);
+
   // 탭바 숨김 처리
   useEffect(() => {
     if (foodScreen === "wcTournament") {
@@ -231,12 +239,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
   function pickFoodWinner(winner, side) {
     if (foodPicking) return;
     setFoodPicking(side);
-    // 소다 색상
-    const FC = [
-      ["#fff7ed","#f97316"],["#f0fdf4","#22d3a5"],["#fefce8","#facc15"],
-      ["#eff6ff","#6366f1"],["#f5f3ff","#a78bfa"],["#ecfdf5","#34d399"],
-    ];
-    sodaColorRef.current._foodTourney = FC[Math.floor(Math.random() * FC.length)];
+    sodaColorRef.current._foodTourney = SODA_COLORS[Math.floor(Math.random() * SODA_COLORS.length)];
     setSodaKeys(p => ({ ...p, _foodTourney: (p._foodTourney || 0) + 1 }));
     setFoodTourneyHistory(h => [...h, winner]);
     setTimeout(() => {
@@ -285,34 +288,22 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
       {/* 홈 */}
       {foodScreen === "home" && (<>
         <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>뭐 먹지? 🍽️</div>
-        <div style={{ fontSize:14, color:"#999", marginBottom:20 }}>오늘 뭐 먹을지 같이 골라보자</div>
+        <div style={{ fontSize:14, color:"var(--text-sub)", marginBottom:20 }}>오늘 뭐 먹을지 같이 골라보자</div>
 
         {/* 음식 캐러셀 */}
-        <div style={{ overflow:"hidden", marginBottom:24, marginLeft:-20, marginRight:-20 }}>
-          <div style={{
-            display:"flex", gap:10, paddingLeft:20, paddingRight:20,
-            animation:"foodScroll 20s linear infinite",
-            width:"max-content",
-          }}>
-            {(() => {
-              const shuffled = [...foods].sort(() => Math.random() - 0.5).slice(0, 15);
-              const doubled = [...shuffled, ...shuffled];
-              return doubled.map((f, i) => (
-                <div key={`${f.id}-${i}`} style={{
-                  flexShrink:0, background:"#fff", borderRadius:14,
-                  padding:"10px 14px", display:"flex", alignItems:"center", gap:8,
-                  boxShadow:"0 1px 3px rgba(0,0,0,0.05)", minWidth:110,
-                }}>
-                  <span style={{ fontSize:22 }}>{f.emoji}</span>
-                  <span style={{ fontSize:13, fontWeight:600, color:"#2D2D2D", whiteSpace:"nowrap" }}>{f.name}</span>
-                </div>
-              ));
-            })()}
+        <div className="food-carousel-wrap">
+          <div className="food-carousel-track">
+            {carouselFoods.map((f, i) => (
+              <div key={`${f.id}-${i}`} className="food-carousel-card">
+                <span style={{ fontSize:22 }}>{f.emoji}</span>
+                <span style={{ fontSize:13, fontWeight:600, color:"var(--text-main)", whiteSpace:"nowrap" }}>{f.name}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         <button onClick={() => { setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFoodScreen("wcQuestions"); }} style={{
-          width:"100%", padding:"20px", background:"#191919", color:"#fff",
+          width:"100%", padding:"20px", background:"var(--text-main)", color:"var(--bg-main)",
           border:"none", borderRadius:16, fontSize:16, fontWeight:800,
           cursor:"pointer", fontFamily:"inherit", marginBottom:12
         }}>
@@ -320,8 +311,8 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         </button>
 
         <button onClick={() => { setRouletteCat("all"); setRouletteFood(null); setSpinDisplay(null); setFoodScreen("roulette"); }} style={{
-          width:"100%", padding:"20px", background:"#fff", color:"#191919",
-          border:"1.5px solid #E0DED8", borderRadius:16, fontSize:16, fontWeight:800,
+          width:"100%", padding:"20px", background:"var(--bg-card)", color:"var(--text-main)",
+          border:"1.5px solid var(--text-dim)", borderRadius:16, fontSize:16, fontWeight:800,
           cursor:"pointer", fontFamily:"inherit"
         }}>
           🎲 랜덤 룰렛
@@ -334,19 +325,18 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           const recent = history.slice(-5).reverse();
           return (
             <div style={{ marginTop:24 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:"#aaa", marginBottom:10 }}>최근에 먹은 것</div>
+              <div style={{ fontSize:13, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>최근에 먹은 것</div>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {recent.map((item, i) => {
                   const food = foods.find(f => f.id === item.id || f.name === item.name);
                   return (
                     <div key={i} style={{
-                      background:"#fff", borderRadius:12, padding:"10px 14px",
+                      background:"var(--bg-card)", borderRadius:12, padding:"10px 14px",
                       display:"flex", alignItems:"center", gap:10,
-                      boxShadow:"0 1px 3px rgba(0,0,0,0.04)"
                     }}>
                       <span style={{ fontSize:22 }}>{food?.emoji || item.emoji || "🍽️"}</span>
-                      <span style={{ fontSize:14, fontWeight:600, color:"#2D2D2D" }}>{food?.name || item.name}</span>
-                      {item.date && <span style={{ fontSize:11, color:"#ccc", marginLeft:"auto" }}>{item.date}</span>}
+                      <span style={{ fontSize:14, fontWeight:600, color:"var(--text-main)" }}>{food?.name || item.name}</span>
+                      {item.date && <span style={{ fontSize:11, color:"var(--text-dim)", marginLeft:"auto" }}>{item.date}</span>}
                     </div>
                   );
                 })}
@@ -362,7 +352,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         const isExclude = q.id === "exclude";
         const curExcludes = foodAnswers.exclude || [];
         return (<>
-          <div style={{ fontSize:13, color:"#aaa", marginBottom:8 }}>{foodStep + 1} / {FOOD_WC_QUESTIONS.length}</div>
+          <div style={{ fontSize:13, color:"var(--text-sub)", marginBottom:8 }}>{foodStep + 1} / {FOOD_WC_QUESTIONS.length}</div>
           <div style={{ fontSize:22, fontWeight:900, marginBottom:20 }}>{q.label}</div>
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {q.options.map(opt => {
@@ -401,9 +391,9 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                   }
                 }} style={{
                   padding:"14px 18px",
-                  background: isSelected ? "#191919" : "#fff",
-                  color: isSelected ? "#fff" : "#191919",
-                  border:"1.5px solid #ECEAE4", borderRadius:14, fontSize:15, fontWeight:600,
+                  background: isSelected ? "var(--text-main)" : "var(--bg-card)",
+                  color: isSelected ? "var(--bg-main)" : "var(--text-main)",
+                  border:"1.5px solid var(--text-dim)", borderRadius:14, fontSize:15, fontWeight:600,
                   cursor:"pointer", fontFamily:"inherit", textAlign:"left"
                 }}>
                   {opt.label}
@@ -414,7 +404,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           {isExclude && curExcludes.length > 0 && !curExcludes.includes("ok") && (
             <button onClick={() => setFoodStep(1)} style={{
               width:"100%", marginTop:16, padding:"15px",
-              background:"#191919", color:"#fff", border:"none", borderRadius:14,
+              background:"var(--text-main)", color:"var(--bg-main)", border:"none", borderRadius:14,
               fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"inherit"
             }}>
               다음 →
@@ -422,7 +412,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           )}
           <button onClick={() => { if (foodStep > 0) setFoodStep(foodStep - 1); else setFoodScreen("home"); }} style={{
             marginTop:16, background:"transparent", border:"none",
-            fontSize:13, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+            fontSize:13, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
           }}>
             ← 뒤로
           </button>
@@ -434,7 +424,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         <div className="screen fade-in" style={{ paddingTop:60, textAlign:"center" }}>
           <div style={{ fontSize:40, marginBottom:16 }}>🍽️</div>
           <div style={{ fontSize:22, fontWeight:800, marginBottom:8 }}>취향 음식 찾기</div>
-          <div style={{ fontSize:14, color:"#999", marginBottom:32 }}>어느 정도로 골라볼까?</div>
+          <div style={{ fontSize:14, color:"var(--text-sub)", marginBottom:32 }}>어느 정도로 골라볼까?</div>
           <div style={{ display:"flex", gap:10, marginBottom:20 }}>
             {[
               { size:4, label:"빠르게", sub:"2번이면 끝", emoji:"🚀" },
@@ -443,108 +433,52 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             ].map(r => (
               <button key={r.size} onClick={() => startFoodWorldCup(r.size)} style={{
                 flex:1, padding:"18px 8px", borderRadius:16,
-                border:"1.5px solid #E0DED8", background:"#fff",
+                border:"1.5px solid var(--text-dim)", background:"var(--bg-card)",
                 cursor:"pointer", fontFamily:"inherit",
                 display:"flex", flexDirection:"column", alignItems:"center", gap:6,
-                boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
               }}>
                 <span style={{ fontSize:28 }}>{r.emoji}</span>
-                <span style={{ fontSize:15, fontWeight:700, color:"#191919" }}>{r.label}</span>
-                <span style={{ fontSize:11, color:"#aaa" }}>{r.sub}</span>
+                <span style={{ fontSize:15, fontWeight:700, color:"var(--text-main)" }}>{r.label}</span>
+                <span style={{ fontSize:11, color:"var(--text-sub)" }}>{r.sub}</span>
               </button>
             ))}
           </div>
           <button onClick={() => setFoodScreen("wcQuestions")} style={{
             background:"transparent", border:"none", fontSize:13,
-            color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+            color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
           }}>← 뒤로</button>
         </div>
       )}
 
       {/* 카드 월드컵 토너먼트 */}
-      {foodScreen === "wcTournament" && (() => {
-        const fPair = foodBracket.slice(foodMatchIdx, foodMatchIdx + 2);
-        const fTotal = foodBracket.length / 2;
-        const fCurrent = Math.floor(foodMatchIdx / 2) + 1;
-        const getFoodRoundLabel = () => {
-          if (foodBracket.length === 16) return `16강 · ${fCurrent}/${fTotal}`;
-          if (foodBracket.length === 8) return `8강 · ${fCurrent}/${fTotal}`;
-          if (foodBracket.length === 4) return `4강 · ${fCurrent}/${fTotal}`;
-          if (foodBracket.length === 2) return "🏆 결승!";
-          return `${fCurrent}/${fTotal}`;
-        };
-        if (fPair.length < 2) return null;
-        const ftc = sodaColorRef.current._foodTourney || ["#eff6ff","#6366f1"];
-        const ftk = sodaKeys._foodTourney || 0;
-        return (<>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width:`${(fCurrent / fTotal) * 100}%` }} />
-          </div>
-          <div className="match-label">{getFoodRoundLabel()}</div>
-          <div className="cards-wrap">
-            {[["left", fPair[0]], ["right", fPair[1]]].map(([side, food], idx) => {
-              if (!food) return null;
-              const isPicked = foodPicking === side;
-              const isOther = foodPicking && foodPicking !== side;
-              const TB = [
-                {left:"10%",size:5,dur:3.0,delay:0.2},{left:"22%",size:8,dur:2.6,delay:0.7},
-                {left:"35%",size:4,dur:3.4,delay:1.3},{left:"48%",size:9,dur:2.8,delay:0.5},
-                {left:"62%",size:6,dur:3.2,delay:1.0},{left:"75%",size:4,dur:2.9,delay:1.6},
-                {left:"85%",size:7,dur:3.1,delay:0.4},{left:"50%",size:5,dur:2.7,delay:1.8},
-              ];
-              return (
-                <React.Fragment key={side}>
-                  {idx === 1 && <div className="vs-divider">VS</div>}
-                  <div className={`toss-card${isPicked ? " picking-"+side : ""}`}
-                    onClick={() => pickFoodWinner(food, side)}
-                    style={{
-                      opacity: isOther ? 0.4 : 1,
-                      transition:"opacity 0.3s ease, transform 0.25s",
-                      overflow:"hidden", position:"relative",
-                      animation: isPicked ? "shakeCan 0.55s ease" : "none",
-                    }}
-                  >
-                    {isPicked && (<>
-                      <div className="liquid" key={ftk} style={{ position:"absolute", left:-4, right:-4, bottom:-50, top:-30, animation:"liquidRise 1.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards", zIndex:1 }}>
-                        <div style={{ position:"absolute", top:0, left:0, right:0, height:24, overflow:"hidden" }}>
-                          <svg style={{ width:"200%", height:24, display:"block", animation:"waveScroll 2s linear infinite" }} viewBox="0 0 200 24" preserveAspectRatio="none">
-                            <path d="M0,12 C25,2 50,22 75,12 C100,2 125,22 150,12 C175,2 200,22 200,12 L200,24 L0,24 Z" fill={ftc[0]} />
-                          </svg>
-                        </div>
-                        <div style={{ position:"absolute", inset:0, top:18, background:`linear-gradient(180deg, ${ftc[0]} 0%, ${ftc[1]} 100%)` }} />
-                      </div>
-                      {TB.map((b, i) => (
-                        <div key={`ft${ftk}-b${i}`} style={{
-                          position:"absolute", width:b.size, height:b.size, left:b.left,
-                          bottom:`${6+(i%6)*4}%`, borderRadius:"50%",
-                          background:"rgba(255,255,255,0.78)", zIndex:3,
-                          animation:`bubbleFloat ${b.dur}s ease-out ${b.delay}s infinite`,
-                          opacity:0, "--drift":`${((i%5)-2)*5}px`, pointerEvents:"none",
-                        }} />
-                      ))}
-                    </>)}
-                    <div className="card-emoji" style={{ position:"relative", zIndex:4 }}>{food.emoji}</div>
-                    <div className="card-name" style={{ position:"relative", zIndex:4 }}>{food.name}</div>
-                    <div className="card-time" style={{ position:"relative", zIndex:4 }}>{food.duration}분</div>
-                  </div>
-                </React.Fragment>
-              );
-            })}
-          </div>
-          <button style={{ background:"transparent", border:"none", color:"#bbb", fontSize:13, cursor:"pointer", marginTop:24, width:"100%", fontFamily:"inherit" }}
-            onClick={() => setFoodScreen("home")}>← 그만하기</button>
-        </>);
-      })()}
+      {foodScreen === "wcTournament" && foodBracket.length >= 2 && (
+        <TournamentCard
+          bracket={foodBracket} matchIdx={foodMatchIdx}
+          picking={foodPicking}
+          colors={sodaColorRef.current._foodTourney || ["#eff6ff","#6366f1"]}
+          sodaKey={sodaKeys._foodTourney || 0}
+          onPick={pickFoodWinner}
+          onBack={() => setFoodScreen("home")}
+          backLabel="← 그만하기"
+          renderInfo={(food) => (
+            <>
+              <div className="card-emoji" style={{ position:"relative", zIndex:4 }}>{food.emoji}</div>
+              <div className="card-name" style={{ position:"relative", zIndex:4 }}>{food.name}</div>
+              <div className="card-time" style={{ position:"relative", zIndex:4 }}>{food.duration}분</div>
+            </>
+          )}
+        />
+      )}
 
       {/* 카드 월드컵 결과 */}
       {foodScreen === "wcResult" && foodChampion && (<>
         <div style={{ textAlign:"center", marginBottom:24 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:"#aaa", letterSpacing:1.5, marginBottom:12 }}>🏆 오늘의 음식</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:12 }}>🏆 오늘의 음식</div>
 
           {/* 메인 카드 */}
           <div style={{
-            background:"#191919", borderRadius:24, padding:"32px 24px", textAlign:"center", color:"#fff",
-            cursor:"pointer", animation:"fadeIn 0.4s ease-out",
+            background:"var(--bg-card)", borderRadius:24, padding:"32px 24px", textAlign:"center", color:"var(--text-main)",
+            cursor:"pointer", animation:"fadeIn 0.4s ease-out", border:"1.5px solid rgba(255,255,255,0.08)",
           }} onClick={() => toggleFoodFlip(foodChampion.id)}>
             {!flippedFoods.has(foodChampion.id) ? (<>
               <div style={{ fontSize:64, marginBottom:12 }}>{foodChampion.emoji}</div>
@@ -622,15 +556,15 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                   {/* 후식 카드 — 연기 뒤에서 스으윽 */}
                   <div key={afterBurstKey + "-card"} style={{
                     width:"100%", borderRadius:20, padding:"26px 20px",
-                    background:"#fff", boxShadow:"0 8px 32px rgba(0,0,0,0.11)",
-                    border:"1.5px solid #E8E5E0", textAlign:"center",
+                    background:"var(--bg-card-hover)", boxShadow:"0 8px 32px rgba(0,0,0,0.2)",
+                    border:"1.5px solid rgba(255,255,255,0.1)", textAlign:"center",
                     position:"relative", zIndex:5,
                     animation:"cardShaar 1.4s cubic-bezier(0.22,1,0.36,1) forwards",
                   }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:"#bbb", letterSpacing:1.5, marginBottom:10, animation:"fadeIn 0.4s ease-out 0.5s forwards", opacity:0 }}>🎉 후식 추천</div>
+                    <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10, animation:"fadeIn 0.4s ease-out 0.5s forwards", opacity:0 }}>🎉 후식 추천</div>
                     <div style={{ fontSize:48, marginBottom:6, animation:"fadeIn 0.4s ease-out 0.7s forwards", opacity:0 }}>{af.emoji}</div>
-                    <div style={{ fontSize:19, fontWeight:900, color:"#191919", marginBottom:5, animation:"fadeIn 0.4s ease-out 0.85s forwards", opacity:0 }}>{af.name}</div>
-                    <div style={{ fontSize:13, color:"#888", fontWeight:600, animation:"fadeIn 0.4s ease-out 1.0s forwards", opacity:0 }}>{af.reason}</div>
+                    <div style={{ fontSize:19, fontWeight:900, color:"var(--text-main)", marginBottom:5, animation:"fadeIn 0.4s ease-out 0.85s forwards", opacity:0 }}>{af.name}</div>
+                    <div style={{ fontSize:13, color:"var(--text-sub)", fontWeight:600, animation:"fadeIn 0.4s ease-out 1.0s forwards", opacity:0 }}>{af.reason}</div>
                   </div>
                 </div>
               )}
@@ -642,9 +576,9 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         {!showFoodRunnerUps && foodTourneyHistory.length > 0 && (
           <button onClick={() => setShowFoodRunnerUps(true)} style={{
             width:"100%", padding:"14px", marginBottom:8,
-            background:"#FAFAF8", border:"1.5px dashed #D0CEC8",
+            background:"var(--bg-card)", border:"1.5px dashed var(--text-dim)",
             borderRadius:14, fontSize:14, fontWeight:700,
-            color:"#888", cursor:"pointer", fontFamily:"inherit",
+            color:"var(--text-sub)", cursor:"pointer", fontFamily:"inherit",
           }}>
             🔄 이거 말고 다른 것도 볼래?
           </button>
@@ -657,7 +591,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             .slice(0, 4);
           return (
             <div style={{ marginBottom:12, animation:"fadeIn 0.3s ease-out" }}>
-              <div style={{ fontSize:13, fontWeight:700, color:"#999", marginBottom:10 }}>아까 아쉽게 탈락한 것들</div>
+              <div style={{ fontSize:13, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>아까 아쉽게 탈락한 것들</div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10 }}>
                 {losers.map(f => (
                   <div key={f.id} onClick={() => {
@@ -671,20 +605,19 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                 const t4 = setTimeout(() => { setAfterBurstKey(k => k+1); setAfterPhase("show"); }, 2400);
                 afterTimers.current = [t1,t2,t3,t4];
               }} style={{
-                    background:"#fff", borderRadius:16, padding:"18px 14px",
+                    background:"var(--bg-card)", borderRadius:16, padding:"18px 14px",
                     textAlign:"center", cursor:"pointer",
-                    boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
-                    border:"1.5px solid #ECEAE4",
+                    border:"1.5px solid var(--text-dim)",
                   }}>
                     <div style={{ fontSize:36, marginBottom:8 }}>{f.emoji}</div>
-                    <div style={{ fontSize:14, fontWeight:700, color:"#191919" }}>{f.name}</div>
+                    <div style={{ fontSize:14, fontWeight:700, color:"var(--text-main)" }}>{f.name}</div>
                   </div>
                 ))}
               </div>
               <button onClick={() => setShowFoodRunnerUps(false)} style={{
                 width:"100%", marginTop:10, padding:"10px",
                 background:"transparent", border:"none",
-                fontSize:12, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+                fontSize:12, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
               }}>닫기</button>
             </div>
           );
@@ -699,7 +632,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         }}>📍 이거 어디서 먹지?</button>
 
         <button onClick={() => { setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFlippedFoods(new Set()); setFoodScreen("wcQuestions"); }} style={{
-          width:"100%", padding:"15px", background:"#191919", color:"#fff",
+          width:"100%", padding:"15px", background:"var(--text-main)", color:"var(--bg-main)",
           border:"none", borderRadius:14, fontSize:15, fontWeight:700,
           cursor:"pointer", fontFamily:"inherit", marginBottom:8
         }}>
@@ -707,7 +640,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         </button>
         <button onClick={() => setFoodScreen("home")} style={{
           width:"100%", padding:"12px", background:"transparent", border:"none",
-          fontSize:13, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+          fontSize:13, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
         }}>
           ← 처음으로
         </button>
@@ -721,9 +654,9 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           {FOOD_CATS.map(cat => (
             <button key={cat.key} onClick={() => { if (!spinning) { setRouletteCat(cat.key); setRouletteFood(null); setSpinDisplay(null); } }} style={{
               padding:"8px 14px", borderRadius:100, fontSize:13, fontWeight:700,
-              border: rouletteCat === cat.key ? "1.5px solid #191919" : "1.5px solid #E0DED8",
-              background: rouletteCat === cat.key ? "#191919" : "#fff",
-              color: rouletteCat === cat.key ? "#fff" : "#666",
+              border: rouletteCat === cat.key ? "1.5px solid var(--text-main)" : "1.5px solid var(--text-dim)",
+              background: rouletteCat === cat.key ? "var(--text-main)" : "var(--bg-card)",
+              color: rouletteCat === cat.key ? "var(--bg-main)" : "var(--text-sub)",
               cursor: spinning ? "default" : "pointer", fontFamily:"inherit"
             }}>
               {cat.emoji} {cat.label}
@@ -732,41 +665,41 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         </div>
 
         <div style={{
-          background:"#fff", borderRadius:24, padding:"40px 24px",
+          background:"var(--bg-card)", borderRadius:24, padding:"40px 24px",
           textAlign:"center", marginBottom:20, minHeight:200,
-          boxShadow:"0 2px 8px rgba(0,0,0,0.06)",
-          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center"
+          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+          border:"1px solid rgba(255,255,255,0.06)"
         }}>
           {spinDisplay ? (<>
             <div style={{ fontSize:64, marginBottom:12, transition: spinning ? "none" : "transform 0.3s", transform: !spinning ? "scale(1.1)" : "scale(1)" }}>{spinDisplay.emoji}</div>
-            <div style={{ fontSize:22, fontWeight:900, color: spinning ? "#ccc" : "#191919" }}>{spinDisplay.name}</div>
+            <div style={{ fontSize:22, fontWeight:900, color: spinning ? "var(--text-dim)" : "var(--text-main)" }}>{spinDisplay.name}</div>
             {!spinning && rouletteFood && (<>
               {!flippedFoods.has(rouletteFood.id) ? (<>
-                <div style={{ fontSize:13, color:"#999", marginTop:8, lineHeight:1.5, padding:"0 12px" }}>{rouletteFood.summary}</div>
+                <div style={{ fontSize:13, color:"var(--text-sub)", marginTop:8, lineHeight:1.5, padding:"0 12px" }}>{rouletteFood.summary}</div>
                 <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:12, flexWrap:"wrap", padding:"0 8px" }}>
                   {rouletteFood.tags?.map(tag => (
-                    <span key={tag} style={{ padding:"3px 8px", borderRadius:100, fontSize:10, fontWeight:600, background:"#F0EDE8", color:"#888" }}>#{tag}</span>
+                    <span key={tag} style={{ padding:"3px 8px", borderRadius:100, fontSize:10, fontWeight:600, background:"var(--bg-main)", color:"var(--text-sub)" }}>#{tag}</span>
                   ))}
                 </div>
               </>) : (<>
-                <div style={{ fontSize:13, color:"#666", marginTop:12, lineHeight:1.7, padding:"0 12px" }}>💡 {rouletteFood.trivia}</div>
+                <div style={{ fontSize:13, color:"var(--text-sub)", marginTop:12, lineHeight:1.7, padding:"0 12px" }}>💡 {rouletteFood.trivia}</div>
               </>)}
               <button onClick={(e) => { e.stopPropagation(); toggleFoodFlip(rouletteFood.id); }} style={{
-                marginTop:12, background:"#F0EDE8", border:"none", borderRadius:100,
-                padding:"4px 14px", fontSize:11, fontWeight:600, color:"#888", cursor:"pointer", fontFamily:"inherit"
+                marginTop:12, background:"var(--bg-main)", border:"none", borderRadius:100,
+                padding:"4px 14px", fontSize:11, fontWeight:600, color:"var(--text-sub)", cursor:"pointer", fontFamily:"inherit"
               }}>
                 {flippedFoods.has(rouletteFood.id) ? "설명 보기" : "💡 상식 보기"}
               </button>
             </>)}
           </>) : (
-            <div style={{ fontSize:18, color:"#ccc", fontWeight:600 }}>카테고리 고르고 돌려!</div>
+            <div style={{ fontSize:18, color:"var(--text-dim)", fontWeight:600 }}>카테고리 고르고 돌려!</div>
           )}
         </div>
 
         {!rouletteFood ? (
           <button onClick={startRoulette} disabled={spinning} style={{
-            width:"100%", padding:"17px", background: spinning ? "#D0CEC8" : "#191919",
-            color: spinning ? "#999" : "#fff", border:"none", borderRadius:16,
+            width:"100%", padding:"17px", background: spinning ? "var(--text-dim)" : "var(--text-main)",
+            color: spinning ? "var(--bg-card)" : "var(--bg-main)", border:"none", borderRadius:16,
             fontSize:16, fontWeight:800, cursor: spinning ? "default" : "pointer", fontFamily:"inherit"
           }}>
             {spinning ? "돌리는 중..." : "🎰 돌려!"}
@@ -774,15 +707,15 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
         ) : (
           <div style={{ display:"flex", gap:8 }}>
             <button onClick={startRoulette} style={{
-              flex:1, padding:"15px", background:"#191919", color:"#fff",
+              flex:1, padding:"15px", background:"var(--text-main)", color:"var(--bg-main)",
               border:"none", borderRadius:14, fontSize:15, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit"
             }}>
               🎰 다시 돌려
             </button>
             <button onClick={() => setFoodScreen("home")} style={{
-              flex:1, padding:"15px", background:"#fff", color:"#666",
-              border:"1.5px solid #E0DED8", borderRadius:14, fontSize:15, fontWeight:700,
+              flex:1, padding:"15px", background:"var(--bg-card)", color:"var(--text-sub)",
+              border:"1.5px solid var(--text-dim)", borderRadius:14, fontSize:15, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit"
             }}>
               처음으로
@@ -792,7 +725,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
 
         <button onClick={() => setFoodScreen("home")} style={{
           marginTop:12, width:"100%", background:"transparent", border:"none",
-          fontSize:13, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+          fontSize:13, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
         }}>
           ← 뒤로
         </button>

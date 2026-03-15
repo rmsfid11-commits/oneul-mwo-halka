@@ -1,4 +1,4 @@
-/* 오늘 뭐하지? — Global Styles */
+/* 오늘 뭐하지? — Global Styles (리뉴얼) */
 * {
   margin: 0;
   padding: 0;
@@ -6,10 +6,29 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  /* 메인 컬러 */
+  --bg-main: #45413C;
+  --bg-card: #56524D;
+  --bg-card-hover: #635F5A;
+  --text-main: #F0ECE3;
+  --text-sub: #A09890;
+  --text-dim: #7A746D;
+
+  /* 상황별 악센트 */
+  --accent-alone: #7B9ACC;
+  --accent-date: #CC7B8B;
+  --accent-friend: #7BCC9A;
+  --accent-random: #CCAA7B;
+
+  /* 기존 호환 */
+  --bg-light: #F5F4F0;
+}
+
 body {
   font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #F5F4F0;
-  color: #191919;
+  background: var(--bg-main);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
@@ -22,12 +41,185 @@ body {
 }
 
 .fade-in {
-  animation: fadeIn 0.35s ease-out;
+  animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* 카드 순차 등장 */
+.stagger-in > * {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.stagger-in > *:nth-child(1) { animation-delay: 0s; }
+.stagger-in > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger-in > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger-in > *:nth-child(4) { animation-delay: 0.18s; }
+
+/* ─── 스플래시 ─── */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: splashFade 0.4s ease-out 1.2s forwards;
+}
+
+.splash-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--text-main);
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out 0.2s forwards;
+}
+
+.splash-line {
+  width: 0;
+  height: 2px;
+  margin-top: 16px;
+  border-radius: 1px;
+  animation: lineExpand 0.6s ease-out 0.5s forwards;
+}
+
+@keyframes lineExpand {
+  from { width: 0; }
+  to { width: 120px; }
+}
+
+@keyframes splashFade {
+  to { opacity: 0; pointer-events: none; }
+}
+
+/* ─── 상황 선택 ─── */
+.situation-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 18px;
+  background: var(--bg-card);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+
+.situation-card:active {
+  transform: scale(0.97);
+}
+
+.situation-card:hover {
+  background: var(--bg-card-hover);
+}
+
+.situation-bar {
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.situation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.situation-card:hover .situation-dot {
+  transform: scale(1.3);
+}
+
+.situation-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.situation-sub {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin-top: 3px;
+}
+
+.situation-arrow {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text-dim);
+  transition: transform 0.2s;
+}
+
+.situation-card:hover .situation-arrow {
+  transform: translateX(3px);
+}
+
+/* ─── 기분 선택 (2x2 그리드) ─── */
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.mood-card {
+  border-radius: 20px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+  min-height: 140px;
+  text-align: center;
+}
+
+.mood-card:active {
+  transform: scale(0.97);
+}
+
+.mood-card .mood-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.mood-card .mood-sub {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+/* ─── 구분선 (페이드아웃) ─── */
+.divider-fade {
+  height: 1px;
+  background: linear-gradient(to right, var(--text-dim), transparent);
+  margin: 20px 0;
+  transform-origin: left;
+  animation: dividerExpand 0.4s ease-out forwards;
+}
+
+@keyframes dividerExpand {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ─── 스텝 라벨 ─── */
+.step-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 12px;
 }
 
 /* ─── 소다 카드 애니메이션 ─── */
@@ -52,6 +244,27 @@ body {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+.food-carousel-wrap {
+  overflow: hidden;
+  margin: 0 -20px 24px;
+}
+.food-carousel-track {
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  animation: foodScroll 25s linear infinite;
+}
+.food-carousel-card {
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  border: 1px solid rgba(255,255,255,0.06);
+}
 @keyframes liquidRise {
   0%   { transform: translateY(115%); }
   58%  { transform: translateY(-9%); }
@@ -69,8 +282,8 @@ body {
 .soda-card {
   position: relative;
   border-radius: 16px;
-  border: 1.5px solid #E0DED8;
-  background: white;
+  border: 1.5px solid var(--text-dim);
+  background: var(--bg-card);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -126,7 +339,7 @@ body {
   line-height: 1.2;
   text-align: center;
   padding: 0 2px;
-  color: #555;
+  color: var(--text-sub);
   transition: color 0.2s 1s;
 }
 .soda-card.sel .card-label { color: white; }
@@ -136,27 +349,26 @@ body {
 .section-tag {
   display: inline-block;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #888;
+  font-weight: 500;
+  letter-spacing: 3px;
+  color: var(--text-dim);
   text-transform: uppercase;
   margin-bottom: 6px;
 }
 
 /* ─── 질문 카드 ─── */
 .q-card {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 20px;
   padding: 20px;
   margin-bottom: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .q-label {
   font-size: 17px;
   font-weight: 700;
   margin-bottom: 14px;
-  color: #191919;
+  color: var(--text-main);
 }
 
 /* ─── 옵션 ─── */
@@ -172,8 +384,8 @@ body {
   justify-content: space-between;
   padding: 13px 16px;
   border-radius: 14px;
-  border: 1.5px solid #ECEAE4;
-  background: #FAFAF8;
+  border: none;
+  background: var(--bg-main);
   cursor: pointer;
   transition: all 0.18s;
   font-family: inherit;
@@ -181,18 +393,17 @@ body {
 }
 
 .opt-btn.selected {
-  border-color: #191919;
-  background: #191919;
+  background: var(--text-main);
 }
 
 .opt-btn .opt-label {
   font-size: 15px;
   font-weight: 500;
-  color: #191919;
+  color: var(--text-main);
 }
 
 .opt-btn.selected .opt-label {
-  color: #fff;
+  color: var(--bg-main);
 }
 
 /* ─── 서브 옵션 ─── */
@@ -218,14 +429,14 @@ body {
 }
 
 .sub-item:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .sub-check {
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  border: 1.5px solid #D0CEC8;
+  border: 1.5px solid var(--text-dim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,13 +445,17 @@ body {
 }
 
 .sub-check.checked {
-  background: #191919;
-  border-color: #191919;
+  background: var(--text-main);
+  border-color: var(--text-main);
+}
+
+.sub-check.checked span {
+  color: var(--bg-main) !important;
 }
 
 .sub-text {
   font-size: 14px;
-  color: #555;
+  color: var(--text-sub);
   font-weight: 500;
 }
 
@@ -254,7 +469,7 @@ body {
   font-weight: 900;
   text-align: center;
   margin-bottom: 12px;
-  color: #191919;
+  color: var(--text-main);
 }
 
 input[type="range"] {
@@ -262,7 +477,7 @@ input[type="range"] {
   height: 6px;
   -webkit-appearance: none;
   appearance: none;
-  background: #E0DED8;
+  background: var(--text-dim);
   border-radius: 3px;
   outline: none;
 }
@@ -273,18 +488,18 @@ input[type="range"]::-webkit-slider-thumb {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #191919;
+  background: var(--text-main);
   cursor: pointer;
-  border: 3px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  border: 3px solid var(--bg-card);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* ─── 시작 버튼 ─── */
 .start-btn {
   width: 100%;
   padding: 17px;
-  background: #191919;
-  color: #fff;
+  background: var(--text-main);
+  color: var(--bg-main);
   border: none;
   border-radius: 16px;
   font-size: 16px;
@@ -296,8 +511,8 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .start-btn:disabled {
-  background: #D0CEC8;
-  color: #999;
+  background: var(--text-dim);
+  color: var(--bg-card);
   cursor: default;
 }
 
@@ -320,7 +535,7 @@ input[type="range"]::-webkit-slider-thumb {
 .progress-bar {
   width: 100%;
   height: 4px;
-  background: #E0DED8;
+  background: var(--text-dim);
   border-radius: 2px;
   margin-bottom: 24px;
   overflow: hidden;
@@ -328,14 +543,14 @@ input[type="range"]::-webkit-slider-thumb {
 
 .progress-fill {
   height: 100%;
-  background: #191919;
+  background: var(--text-main);
   border-radius: 2px;
   transition: width 0.4s ease;
 }
 
 .match-label {
   font-size: 14px;
-  color: #999;
+  color: var(--text-sub);
   margin-bottom: 32px;
   font-weight: 600;
 }
@@ -349,20 +564,20 @@ input[type="range"]::-webkit-slider-thumb {
 
 .toss-card {
   flex: 1;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 24px;
   padding: 32px 16px;
   text-align: center;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   border: 2px solid transparent;
 }
 
 .toss-card:hover {
-  border-color: #191919;
+  border-color: var(--text-main);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .toss-card:active {
@@ -371,7 +586,6 @@ input[type="range"]::-webkit-slider-thumb {
 
 .toss-card.picking-left,
 .toss-card.picking-right {
-  background: #fff;
   transform: scale(1.03);
 }
 
@@ -395,14 +609,14 @@ input[type="range"]::-webkit-slider-thumb {
 .card-name {
   font-size: 16px;
   font-weight: 800;
-  color: #191919;
+  color: var(--text-main);
   margin-bottom: 4px;
   transition: color 0.2s;
 }
 
 .card-time {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-sub);
   font-weight: 500;
   transition: color 0.2s;
 }
@@ -410,7 +624,7 @@ input[type="range"]::-webkit-slider-thumb {
 .vs-divider {
   font-size: 16px;
   font-weight: 900;
-  color: #ccc;
+  color: var(--text-dim);
   flex-shrink: 0;
 }
 
@@ -443,10 +657,9 @@ input[type="range"]::-webkit-slider-thumb {
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 14px;
   margin-bottom: 8px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .s-emoji {
@@ -457,11 +670,12 @@ input[type="range"]::-webkit-slider-thumb {
   flex: 1;
   font-size: 14px;
   font-weight: 600;
+  color: var(--text-main);
 }
 
 .s-time {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-sub);
   font-weight: 500;
 }
 

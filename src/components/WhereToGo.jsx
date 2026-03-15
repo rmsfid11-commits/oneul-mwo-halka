@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { recommendPlace, buildTournamentBracket } from '../features/whereToGo/engine.js';
+import TournamentCard from './shared/TournamentCard.jsx';
+import { SODA_COLORS } from './whatToDo/constants.js';
 
 export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideTabBar, pendingPlaceContext, onClearPendingContext }) {
   // ── 장소 탭 상태 ──
@@ -7,6 +9,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
   const [placeResult, setPlaceResult] = useState(null); // { main, alternatives }
   const [placeAnswers, setPlaceAnswers] = useState({ who: null, inOut: null, budget: null, mood: null });
   const [placeContext, setPlaceContext] = useState(null); // { from: "whatToDo"|"whatToEat", activity?, food? }
+  const [showStayHomeNudge, setShowStayHomeNudge] = useState(false);
   // 장소 토너먼트 상태
   const [placeBracket, setPlaceBracket] = useState([]);
   const [placeMatchIdx, setPlaceMatchIdx] = useState(0);
@@ -18,6 +21,13 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
   // pendingPlaceContext를 감지해서 적용
   useEffect(() => {
     if (pendingPlaceContext) {
+      if (pendingPlaceContext.stayHome) {
+        // "집에 있을 거야" 선택 시 넛지 표시
+        setShowStayHomeNudge(true);
+        setPlaceContext(pendingPlaceContext.placeContext);
+      } else {
+        setShowStayHomeNudge(false);
+      }
       setPlaceAnswers(pendingPlaceContext.placeAnswers);
       setPlaceContext(pendingPlaceContext.placeContext);
       setPlaceScreen("setup");
@@ -57,11 +67,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
   function pickPlaceWinner(winner, side) {
     if (placePicking) return;
     setPlacePicking(side);
-    const PC = [
-      ["#eff6ff","#667eea"],["#f5f3ff","#764ba2"],["#f0fdf4","#22d3a5"],
-      ["#fff7ed","#f97316"],["#fefce8","#facc15"],["#ecfdf5","#34d399"],
-    ];
-    sodaColorRef.current._placeTourney = PC[Math.floor(Math.random() * PC.length)];
+    sodaColorRef.current._placeTourney = SODA_COLORS[Math.floor(Math.random() * SODA_COLORS.length)];
     setSodaKeys(p => ({ ...p, _placeTourney: (p._placeTourney || 0) + 1 }));
     setPlaceTourneyHistory(h => [...h, winner]);
     setTimeout(() => {
@@ -102,9 +108,9 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
       {placeScreen === "home" && (
         <div className="screen fade-in" style={{ paddingTop:32 }}>
           <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>어디 가지? 📍</div>
-          <div style={{ fontSize:14, color:"#999", marginBottom:28 }}>지금 기분에 맞는 장소를 찾아줄게</div>
+          <div style={{ fontSize:14, color:"var(--text-sub)", marginBottom:28 }}>지금 기분에 맞는 장소를 찾아줄게</div>
 
-          <div style={{ fontSize:11, fontWeight:700, color:"#aaa", letterSpacing:1.5, marginBottom:10 }}>빠른 추천</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10 }}>빠른 추천</div>
           <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
             {[
               { id:"chill", emoji:"😌", label:"조용히 쉬고 싶어" },
@@ -113,20 +119,20 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               { id:"random", emoji:"🎲", label:"아무데나 골라줘" },
             ].map(m => (
               <button key={m.id} onClick={() => doPlaceRecommend({ mood:m.id }, null)} style={{
-                background:"#fff", border:"none", borderRadius:16, padding:"20px 18px",
+                background:"var(--bg-card)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"20px 18px",
                 display:"flex", alignItems:"center", gap:14, cursor:"pointer",
-                boxShadow:"0 1px 4px rgba(0,0,0,0.06)", fontFamily:"inherit",
+                fontFamily:"inherit",
                 textAlign:"left", transition:"transform 0.15s"
               }} onPointerDown={e => e.currentTarget.style.transform="scale(0.97)"}
                  onPointerUp={e => e.currentTarget.style.transform="scale(1)"}
                  onPointerLeave={e => e.currentTarget.style.transform="scale(1)"}>
                 <div style={{ fontSize:28 }}>{m.emoji}</div>
-                <div style={{ fontSize:16, fontWeight:700, color:"#2D2D2D" }}>{m.label}</div>
+                <div style={{ fontSize:16, fontWeight:700, color:"var(--text-main)" }}>{m.label}</div>
               </button>
             ))}
           </div>
 
-          <div style={{ fontSize:11, fontWeight:700, color:"#aaa", letterSpacing:1.5, marginBottom:10 }}>내 취향 장소 찾기</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10 }}>내 취향 장소 찾기</div>
           <div style={{ display:"flex", gap:8, marginBottom:16 }}>
             {[
               { size:4, label:"빠르게", sub:"2번이면 끝", emoji:"🚀" },
@@ -135,22 +141,21 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             ].map(r => (
               <button key={r.size} onClick={() => startPlaceTournament({}, null, r.size)} style={{
                 flex:1, padding:"14px 8px", borderRadius:14,
-                border:"1.5px solid #E0DED8", background:"#fff",
+                border:"1.5px solid var(--text-dim)", background:"var(--bg-card)",
                 cursor:"pointer", fontFamily:"inherit",
                 display:"flex", flexDirection:"column", alignItems:"center", gap:4,
-                boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
               }}>
                 <span style={{ fontSize:22 }}>{r.emoji}</span>
-                <span style={{ fontSize:13, fontWeight:700, color:"#191919" }}>{r.label}</span>
-                <span style={{ fontSize:10, color:"#aaa" }}>{r.sub}</span>
+                <span style={{ fontSize:13, fontWeight:700, color:"var(--text-main)" }}>{r.label}</span>
+                <span style={{ fontSize:10, color:"var(--text-sub)" }}>{r.sub}</span>
               </button>
             ))}
           </div>
 
           <button onClick={() => { setPlaceAnswers({ who:null, inOut:null, budget:null, mood:null }); setPlaceContext(null); setPlaceScreen("setup"); }} style={{
-            width:"100%", padding:15, background:"#fff",
-            border:"1.5px solid #E0DED8", borderRadius:16,
-            fontSize:15, fontWeight:700, color:"#555",
+            width:"100%", padding:15, background:"var(--bg-card)",
+            border:"1.5px solid var(--text-dim)", borderRadius:16,
+            fontSize:15, fontWeight:700, color:"var(--text-sub)",
             cursor:"pointer", fontFamily:"inherit"
           }}>
             🎯 세부 설정하고 추천받기
@@ -165,22 +170,36 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
               <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px" }}>어디 가지? 📍</div>
               <button onClick={() => { setPlaceScreen("home"); setPlaceContext(null); }} style={{
-                padding:"6px 12px", borderRadius:100, border:"1.5px solid #E0DED8",
-                background:"#fff", fontSize:11, fontWeight:700, color:"#aaa",
+                padding:"6px 12px", borderRadius:100, border:"1.5px solid var(--text-dim)",
+                background:"var(--bg-card)", fontSize:11, fontWeight:700, color:"var(--text-sub)",
                 cursor:"pointer", fontFamily:"inherit"
               }}>← 뒤로</button>
             </div>
-            <div style={{ fontSize:14, color:"#999", marginTop:6 }}>
+            <div style={{ fontSize:14, color:"var(--text-sub)", marginTop:6 }}>
               {placeContext?.from === "whatToDo" ? `${placeContext.activity?.emoji || "✨"} ${placeContext.activity?.name} 하기 좋은 곳을 찾아줄게` :
                placeContext?.from === "whatToEat" ? `${placeContext.food?.emoji || "🍽️"} ${placeContext.food?.name || "맛집"} 먹으러 갈 곳을 찾아줄게` :
                "몇 가지만 알려주면 딱 맞는 곳 찾아줄게"}
             </div>
           </div>
 
+          {showStayHomeNudge && (
+            <div style={{
+              background:"rgba(123,154,204,0.15)", borderRadius:14, padding:"14px 16px",
+              marginBottom:16, fontSize:13, color:"var(--text-main)", lineHeight:1.6,
+              border:"1px solid rgba(123,154,204,0.3)"
+            }}>
+              <div style={{ fontWeight:700, marginBottom:4 }}>🏠 집에 있고 싶다고 했죠?</div>
+              <div style={{ color:"var(--text-sub)", fontSize:12 }}>
+                집에만 있으면 답답하니까, 잠깐 나갔다 오는 건 어때요?
+                <br/>가까운 곳 위주로 추천해줄게요.
+              </div>
+            </div>
+          )}
+
           {placeContext && (
             <div style={{
-              background:"#F5F3EE", borderRadius:14, padding:"10px 14px",
-              marginBottom:16, fontSize:12, color:"#666", display:"flex",
+              background:"var(--bg-card)", borderRadius:14, padding:"10px 14px",
+              marginBottom:16, fontSize:12, color:"var(--text-sub)", display:"flex",
               alignItems:"center", justifyContent:"space-between"
             }}>
               <span>
@@ -188,7 +207,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                 {" — 답변이 자동으로 채워졌어"}
               </span>
               <button onClick={() => { setPlaceContext(null); setPlaceAnswers({ who:null, inOut:null, budget:null, mood:null }); }} style={{
-                background:"none", border:"none", fontSize:11, color:"#aaa", cursor:"pointer", fontFamily:"inherit"
+                background:"none", border:"none", fontSize:11, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
               }}>초기화</button>
             </div>
           )}
@@ -240,7 +259,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           </button>
           {placeAnswers.who && placeAnswers.mood && (
             <>
-              <div style={{ fontSize:12, fontWeight:700, color:"#aaa", textAlign:"center", marginTop:16, marginBottom:8 }}>취향 장소 찾기</div>
+              <div style={{ fontSize:12, fontWeight:700, color:"var(--text-sub)", textAlign:"center", marginTop:16, marginBottom:8 }}>취향 장소 찾기</div>
               <div style={{ display:"flex", gap:8 }}>
                 {[
                   { size:4, label:"빠르게", sub:"2번", emoji:"🚀" },
@@ -249,10 +268,10 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                 ].map(r => (
                   <button key={r.size} onClick={() => startPlaceTournament(placeAnswers, placeContext, r.size)} style={{
                     flex:1, padding:"12px 6px", borderRadius:12,
-                    border:"none", background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    border:"1.5px solid var(--text-dim)", background:"var(--bg-card-hover)",
                     cursor:"pointer", fontFamily:"inherit",
                     display:"flex", flexDirection:"column", alignItems:"center", gap:3,
-                    color:"#fff", boxShadow:"0 2px 8px rgba(102,126,234,0.3)",
+                    color:"var(--text-main)",
                   }}>
                     <span style={{ fontSize:18 }}>{r.emoji}</span>
                     <span style={{ fontSize:13, fontWeight:700 }}>{r.label}</span>
@@ -266,90 +285,33 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
       )}
 
       {/* 토너먼트 화면 */}
-      {placeScreen === "tournament" && (() => {
-        const pPair = placeBracket.slice(placeMatchIdx, placeMatchIdx + 2);
-        const pTotal = placeBracket.length / 2;
-        const pCurrent = Math.floor(placeMatchIdx / 2) + 1;
-        const getPlaceRoundLabel = () => {
-          if (placeBracket.length === 16) return `16강 · ${pCurrent}/${pTotal}`;
-          if (placeBracket.length === 8) return `8강 · ${pCurrent}/${pTotal}`;
-          if (placeBracket.length === 4) return `4강 · ${pCurrent}/${pTotal}`;
-          if (placeBracket.length === 2) return "🏆 결승!";
-          return `${pCurrent}/${pTotal}`;
-        };
-        if (pPair.length < 2) return null;
-        const ptc = sodaColorRef.current._placeTourney || ["#eff6ff","#667eea"];
-        const ptk = sodaKeys._placeTourney || 0;
-        const TB = [
-          {left:"10%",size:5,dur:3.0,delay:0.2},{left:"22%",size:8,dur:2.6,delay:0.7},
-          {left:"35%",size:4,dur:3.4,delay:1.3},{left:"48%",size:9,dur:2.8,delay:0.5},
-          {left:"62%",size:6,dur:3.2,delay:1.0},{left:"75%",size:4,dur:2.9,delay:1.6},
-          {left:"85%",size:7,dur:3.1,delay:0.4},{left:"50%",size:5,dur:2.7,delay:1.8},
-        ];
-        return (
-          <div className="tournament-screen fade-in">
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width:`${(pCurrent / pTotal) * 100}%` }} />
-            </div>
-            <div className="match-label">{getPlaceRoundLabel()}</div>
-            <div className="cards-wrap">
-              {[["left", pPair[0]], ["right", pPair[1]]].map(([side, place], idx) => {
-                if (!place) return null;
-                const isPicked = placePicking === side;
-                const isOther = placePicking && placePicking !== side;
-                return (
-                  <React.Fragment key={side}>
-                    {idx === 1 && <div className="vs-divider">VS</div>}
-                    <div className={`toss-card${isPicked ? " picking-"+side : ""}`}
-                      onClick={() => pickPlaceWinner(place, side)}
-                      style={{
-                        opacity: isOther ? 0.4 : 1,
-                        transition:"opacity 0.3s ease, transform 0.25s",
-                        overflow:"hidden", position:"relative",
-                        animation: isPicked ? "shakeCan 0.55s ease" : "none",
-                      }}
-                    >
-                      {isPicked && (<>
-                        <div className="liquid" key={ptk} style={{ position:"absolute", left:-4, right:-4, bottom:-50, top:-30, animation:"liquidRise 1.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards", zIndex:1 }}>
-                          <div style={{ position:"absolute", top:0, left:0, right:0, height:24, overflow:"hidden" }}>
-                            <svg style={{ width:"200%", height:24, display:"block", animation:"waveScroll 2s linear infinite" }} viewBox="0 0 200 24" preserveAspectRatio="none">
-                              <path d="M0,12 C25,2 50,22 75,12 C100,2 125,22 150,12 C175,2 200,22 200,12 L200,24 L0,24 Z" fill={ptc[0]} />
-                            </svg>
-                          </div>
-                          <div style={{ position:"absolute", inset:0, top:18, background:`linear-gradient(180deg, ${ptc[0]} 0%, ${ptc[1]} 100%)` }} />
-                        </div>
-                        {TB.map((b, i) => (
-                          <div key={`pt${ptk}-b${i}`} style={{
-                            position:"absolute", width:b.size, height:b.size, left:b.left,
-                            bottom:`${6+(i%6)*4}%`, borderRadius:"50%",
-                            background:"rgba(255,255,255,0.78)", zIndex:3,
-                            animation:`bubbleFloat ${b.dur}s ease-out ${b.delay}s infinite`,
-                            opacity:0, "--drift":`${((i%5)-2)*5}px`, pointerEvents:"none",
-                          }} />
-                        ))}
-                      </>)}
-                      <div className="card-emoji" style={{ position:"relative", zIndex:4 }}>{place.emoji}</div>
-                      <div className="card-name" style={{ position:"relative", zIndex:4 }}>{place.name}</div>
-                      <div className="card-time" style={{ position:"relative", zIndex:4 }}>
-                        {place.stayDuration >= 60 ? `${Math.floor(place.stayDuration/60)}시간${place.stayDuration%60>0?` ${place.stayDuration%60}분`:""}` : `${place.stayDuration}분`}
-                      </div>
-                    </div>
-                  </React.Fragment>
-                );
-              })}
-            </div>
-            <button style={{ background:"transparent", border:"none", color:"#bbb", fontSize:13, cursor:"pointer", marginTop:24, width:"100%", fontFamily:"inherit" }}
-              onClick={() => setPlaceScreen("setup")}>← 그만하기</button>
-          </div>
-        );
-      })()}
+      {placeScreen === "tournament" && placeBracket.length >= 2 && (
+        <TournamentCard
+          bracket={placeBracket} matchIdx={placeMatchIdx}
+          picking={placePicking}
+          colors={sodaColorRef.current._placeTourney || ["#eff6ff","#667eea"]}
+          sodaKey={sodaKeys._placeTourney || 0}
+          onPick={pickPlaceWinner}
+          onBack={() => setPlaceScreen("setup")}
+          backLabel="← 그만하기"
+          renderInfo={(place) => (
+            <>
+              <div className="card-emoji" style={{ position:"relative", zIndex:4 }}>{place.emoji}</div>
+              <div className="card-name" style={{ position:"relative", zIndex:4 }}>{place.name}</div>
+              <div className="card-time" style={{ position:"relative", zIndex:4 }}>
+                {place.stayDuration >= 60 ? `${Math.floor(place.stayDuration/60)}시간${place.stayDuration%60>0?` ${place.stayDuration%60}분`:""}` : `${place.stayDuration}분`}
+              </div>
+            </>
+          )}
+        />
+      )}
 
       {/* 결과 화면 */}
       {placeScreen === "result" && placeResult && (
         <div className="screen fade-in" style={{ paddingTop:32 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:20 }}>
             <button onClick={() => setPlaceScreen(placeAnswers.who ? "setup" : "home")} style={{
-              background:"none", border:"none", fontSize:20, cursor:"pointer", padding:4
+              background:"none", border:"none", fontSize:20, cursor:"pointer", padding:4, color:"var(--text-main)"
             }}>←</button>
             <div style={{ fontSize:20, fontWeight:800 }}>추천 장소</div>
           </div>
@@ -357,9 +319,9 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           {/* context 안내 */}
           {placeContext && (
             <div style={{
-              background:"linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%)",
-              borderRadius:14, padding:"12px 16px", marginBottom:16,
-              display:"flex", alignItems:"center", gap:10, fontSize:13, color:"#555"
+              background:"var(--bg-card)", borderRadius:14, padding:"12px 16px", marginBottom:16,
+              display:"flex", alignItems:"center", gap:10, fontSize:13, color:"var(--text-sub)",
+              border:"1px solid rgba(255,255,255,0.06)"
             }}>
               <span style={{ fontSize:20 }}>{placeContext.from === "whatToDo" ? "✨" : "🍽️"}</span>
               <span>
@@ -415,36 +377,35 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           {/* 대안 */}
           {placeResult.alternatives.length > 0 && (
             <>
-              <div style={{ fontSize:14, fontWeight:700, color:"#999", marginBottom:10 }}>이런 곳도 있어요</div>
+              <div style={{ fontSize:14, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>이런 곳도 있어요</div>
               <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
                 {placeResult.alternatives.map(p => (
                   <div key={p.id} style={{
-                    background:"#fff", borderRadius:14, padding:"16px 18px",
+                    background:"var(--bg-card)", borderRadius:14, padding:"16px 18px",
                     display:"flex", alignItems:"center", gap:12,
-                    boxShadow:"0 1px 4px rgba(0,0,0,0.05)"
                   }}>
                     <div style={{ fontSize:28 }}>{p.emoji}</div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontSize:14, fontWeight:700, marginBottom:3 }}>{p.name}</div>
-                      <div style={{ fontSize:12, color:"#aaa", lineHeight:1.4 }}>{p.summary}</div>
+                      <div style={{ fontSize:14, fontWeight:700, marginBottom:3, color:"var(--text-main)" }}>{p.name}</div>
+                      <div style={{ fontSize:12, color:"var(--text-sub)", lineHeight:1.4 }}>{p.summary}</div>
                       <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"wrap" }}>
                         {p.tags?.slice(0, 3).map(tag => (
                           <span key={tag} style={{
-                            background:"#F5F3EE", borderRadius:10,
-                            padding:"2px 8px", fontSize:10, color:"#999"
+                            background:"var(--bg-main)", borderRadius:10,
+                            padding:"2px 8px", fontSize:10, color:"var(--text-sub)"
                           }}>#{tag}</span>
                         ))}
                       </div>
                       <div style={{ display:"flex", gap:6, marginTop:8 }}>
                         <a href={`https://www.google.com/maps/search/${encodeURIComponent(p.name + " 근처")}`}
                           target="_blank" rel="noopener noreferrer" style={{
-                            padding:"4px 10px", borderRadius:8, background:"#F5F3EE",
-                            fontSize:10, fontWeight:700, color:"#888", textDecoration:"none"
+                            padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
+                            fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
                           }}>📍 구글맵</a>
                         <a href={`https://map.kakao.com/link/search/${encodeURIComponent(p.name)}`}
                           target="_blank" rel="noopener noreferrer" style={{
-                            padding:"4px 10px", borderRadius:8, background:"#F5F3EE",
-                            fontSize:10, fontWeight:700, color:"#888", textDecoration:"none"
+                            padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
+                            fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
                           }}>🗺️ 카카오맵</a>
                       </div>
                     </div>
@@ -458,18 +419,18 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           <div style={{ display:"flex", gap:10, marginBottom:10 }}>
             <button onClick={() => doPlaceRecommend(placeAnswers, placeContext)} style={{
               flex:1, padding:"14px", borderRadius:12, border:"none",
-              background:"#191919", fontSize:14, fontWeight:700,
-              cursor:"pointer", fontFamily:"inherit", color:"#fff"
+              background:"var(--text-main)", fontSize:14, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit", color:"var(--bg-main)"
             }}>🔄 다시 추천</button>
             <button onClick={() => { setPlaceScreen("setup"); }} style={{
-              flex:1, padding:"14px", borderRadius:12, border:"none",
-              background:"#F5F3F0", fontSize:14, fontWeight:700,
-              cursor:"pointer", fontFamily:"inherit", color:"#2D2D2D"
+              flex:1, padding:"14px", borderRadius:12, border:"1px solid var(--text-dim)",
+              background:"var(--bg-card)", fontSize:14, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit", color:"var(--text-main)"
             }}>⚙ 다시 설정</button>
           </div>
           <button onClick={() => { setPlaceScreen("home"); setPlaceContext(null); setPlaceAnswers({ who:null, inOut:null, budget:null, mood:null }); }} style={{
             width:"100%", padding:"12px", background:"transparent", border:"none",
-            fontSize:13, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+            fontSize:13, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
           }}>
             🏠 처음으로
           </button>
