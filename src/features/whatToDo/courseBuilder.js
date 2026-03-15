@@ -360,6 +360,37 @@ export function generatePlanTitle(plan, prefs) {
   return pick([`${first.name}(으)로 시작하는 코스`, "오늘 이렇게 보내봐", "이런 흐름 어때?"]);
 }
 
+// ── 활동 간 연결 설명 (개연성 있는 흐름) ──
+function describeTransition(prev, next) {
+  const pg = prev.genre;
+  const ng = next.genre;
+
+  // 특정 장르 조합별 자연스러운 연결
+  if (["food","cooking"].includes(pg) && ["healing","relax","culture"].includes(ng))
+    return `배 채우고 나면`;
+  if (["food","cooking"].includes(pg)) return `먹고 나서`;
+  if (["sport","fitness","move","cycling","nature","mountain"].includes(pg) && ["food","cooking"].includes(ng))
+    return `땀 흘리고 나면 배고프니까`;
+  if (["sport","fitness","move","cycling"].includes(pg)) return `몸 좀 쓰고 나면`;
+  if (["healing","relax","beauty"].includes(pg)) return `충분히 쉬었으면`;
+  if (["culture","art","learn"].includes(pg)) return `머리 좀 썼으니`;
+  if (["tidy"].includes(pg)) return `깔끔하게 정리하고`;
+  if (["digital"].includes(pg)) return `화면 보다 지치면`;
+  if (["social"].includes(pg)) return `사람 만나고 나서`;
+  if (["craft"].includes(pg)) return `손으로 뭔가 만들고`;
+  if (["walk","nature"].includes(pg)) return `바깥 공기 마시고`;
+  if (["reading"].includes(pg)) return `책 좀 보다가`;
+  if (["camp"].includes(pg)) return `자연 속에서 놀고`;
+  if (["water"].includes(pg)) return `물놀이하고 나면`;
+  if (["game"].includes(pg)) return `신나게 놀고`;
+  if (["shopping"].includes(pg)) return `쇼핑 좀 하고`;
+  if (["pet"].includes(pg)) return `강아지랑 놀고`;
+  if (["photo"].includes(pg)) return `사진 찍고`;
+  if (["travel"].includes(pg)) return `돌아다니다가`;
+
+  return `그 다음`;
+}
+
 // ── 코스 이유 생성 ──
 export function generatePlanReason(plan) {
   if (!plan || plan.length === 0) return "";
@@ -370,37 +401,41 @@ export function generatePlanReason(plan) {
   const timeText = hours > 0 ? `${hours}시간${mins > 0 ? ` ${mins}분` : ""}` : `${mins}분`;
 
   if (plan.length === 1) {
-    return `${plan[0].emoji} ${plan[0].name} 하나면 ${timeText} 금방이야.`;
+    return `${plan[0].emoji} ${plan[0].name} 하나로 ${timeText} 보내기.`;
   }
 
-  const first = plan[0];
-  const last = plan[plan.length - 1];
-  const midActs = plan.slice(1, -1);
-  const meal = hasMeal(plan);
-  const move = hasMove(plan);
-
-  // 중간 활동을 자연스럽게 나열
-  let mid = "";
-  if (midActs.length === 1) {
-    mid = `중간에 ${midActs[0].emoji} ${midActs[0].name}도 끼워넣고`;
-  } else if (midActs.length === 2) {
-    mid = `${midActs[0].emoji} ${midActs[0].name}, ${midActs[1].emoji} ${midActs[1].name}도 사이에 넣고`;
-  } else if (midActs.length >= 3) {
-    // 구체적으로 나열 (첫 2개 + "외 N개")
-    mid = `${midActs[0].emoji} ${midActs[0].name}, ${midActs[1].emoji} ${midActs[1].name} 외 ${midActs.length - 2}개 더 넣고`;
+  if (plan.length === 2) {
+    const trans = describeTransition(plan[0], plan[1]);
+    return `${plan[0].emoji} ${plan[0].name} 하다가, ${trans} ${plan[1].emoji} ${plan[1].name}. 약 ${timeText}.`;
   }
 
-  // 밥은 밥이지 "흐름"이 아님
-  if (meal && midActs.length === 0) {
-    mid = "배고프면 밥도 먹고";
+  // 3개 이상: 흐름 서술
+  const parts = [];
+  parts.push(`${plan[0].emoji} ${plan[0].name}으로 시작`);
+
+  for (let i = 1; i < plan.length; i++) {
+    const trans = describeTransition(plan[i-1], plan[i]);
+    if (i === plan.length - 1) {
+      // 마지막
+      parts.push(`${trans} ${plan[i].emoji} ${plan[i].name}으로 마무리`);
+    } else if (plan.length <= 4 || i <= 2) {
+      // 4개 이하면 전부, 5개 이상이면 앞 2개만 구체적으로
+      parts.push(`${trans} ${plan[i].emoji} ${plan[i].name}`);
+    }
   }
 
-  // 마무리 톤
-  const endNote = move
-    ? `좀 움직이다가 ${last.emoji} ${last.name}(으)로 마무리.`
-    : `${last.emoji} ${last.name}(으)로 마무리.`;
+  // 5개 이상이면 생략된 중간 활동 언급
+  if (plan.length >= 5) {
+    const skipped = plan.length - 4; // 시작 + 중간2개 + 마지막 제외
+    if (skipped > 0) {
+      // 마지막 part 앞에 삽입
+      const lastPart = parts.pop();
+      parts.push(`그 사이 ${skipped}가지 더 즐기고`);
+      parts.push(lastPart);
+    }
+  }
 
-  return `${first.emoji} ${first.name}로 시작 → ${mid} → ${endNote} 약 ${timeText}.`;
+  return parts.join(", ") + `. 약 ${timeText}.`;
 }
 
 // ── [수정 2] 코스 중복 제거 강화: anchor 동일 = 중복, threshold 60% ──
