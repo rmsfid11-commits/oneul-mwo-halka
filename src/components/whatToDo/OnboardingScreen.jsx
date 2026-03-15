@@ -18,7 +18,7 @@ export default function OnboardingScreen({
       <div style={{ fontSize:13, fontWeight:800, marginBottom:10, color:"var(--text-main)" }}>
         좋아하는 느낌 <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(최대 5개)</span>
       </div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:28 }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
         {VIBE_OPTIONS.map(v => {
           const sel = tempVibes.includes(v.value);
           return (
@@ -30,7 +30,7 @@ export default function OnboardingScreen({
                 );
               }}
               style={{
-                padding: "8px 14px",
+                padding: "7px 12px",
                 borderRadius: 100,
                 border: sel ? "1.5px solid var(--accent-friend)" : "1.5px solid var(--text-dim)",
                 background: sel ? "rgba(123,204,154,0.15)" : "var(--bg-card)",
@@ -56,7 +56,7 @@ export default function OnboardingScreen({
       <div style={{ fontSize:13, fontWeight:800, marginBottom:10, color:"var(--text-main)" }}>
         절대 안 하는 것 <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(추천에서 제외)</span>
       </div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:28 }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
         {BLACKLIST_OPTIONS.map(v => {
           const sel = tempBlacklist.includes(v.value);
           return (
@@ -68,7 +68,7 @@ export default function OnboardingScreen({
                 );
               }}
               style={{
-                padding: "8px 14px",
+                padding: "7px 12px",
                 borderRadius: 100,
                 border: sel ? "1.5px solid var(--accent-date)" : "1.5px solid var(--text-dim)",
                 background: sel ? "rgba(204,123,139,0.15)" : "var(--bg-card)",
