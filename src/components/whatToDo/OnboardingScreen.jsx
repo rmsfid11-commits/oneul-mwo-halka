@@ -1,6 +1,23 @@
 import React from "react";
 import { VIBE_OPTIONS, BLACKLIST_OPTIONS } from './constants.js';
 
+const chipStyle = (sel, accentBorder, accentBg) => ({
+  padding: "10px 0",
+  borderRadius: 12,
+  border: sel ? `1.5px solid ${accentBorder}` : "1.5px solid var(--text-dim)",
+  background: sel ? accentBg : "var(--bg-card)",
+  color: sel ? "var(--text-main)" : "var(--text-sub)",
+  fontSize: 13,
+  fontWeight: sel ? 700 : 500,
+  cursor: "pointer",
+  fontFamily: "inherit",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 5,
+  transition: "all 0.15s",
+});
+
 export default function OnboardingScreen({
   tempVibes, setTempVibes, tempBlacklist, setTempBlacklist,
   sodaKeys, setSodaKeys, sodaColorRef,
@@ -18,7 +35,7 @@ export default function OnboardingScreen({
       <div style={{ fontSize:13, fontWeight:800, marginBottom:10, color:"var(--text-main)" }}>
         좋아하는 느낌 <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(최대 5개)</span>
       </div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:6, marginBottom:24 }}>
         {VIBE_OPTIONS.map(v => {
           const sel = tempVibes.includes(v.value);
           return (
@@ -29,21 +46,7 @@ export default function OnboardingScreen({
                   : p.length >= 5 ? p : [...p, v.value]
                 );
               }}
-              style={{
-                padding: "7px 12px",
-                borderRadius: 100,
-                border: sel ? "1.5px solid var(--accent-friend)" : "1.5px solid var(--text-dim)",
-                background: sel ? "rgba(123,204,154,0.15)" : "var(--bg-card)",
-                color: sel ? "var(--text-main)" : "var(--text-sub)",
-                fontSize: 13,
-                fontWeight: sel ? 700 : 500,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                transition: "all 0.15s",
-              }}
+              style={chipStyle(sel, "var(--accent-friend)", "rgba(123,204,154,0.15)")}
             >
               <span style={{ fontSize: 15 }}>{v.emoji}</span>
               <span>{v.label}</span>
@@ -56,7 +59,7 @@ export default function OnboardingScreen({
       <div style={{ fontSize:13, fontWeight:800, marginBottom:10, color:"var(--text-main)" }}>
         절대 안 하는 것 <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(추천에서 제외)</span>
       </div>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:24 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:6, marginBottom:24 }}>
         {BLACKLIST_OPTIONS.map(v => {
           const sel = tempBlacklist.includes(v.value);
           return (
@@ -67,21 +70,7 @@ export default function OnboardingScreen({
                   : [...p, v.value]
                 );
               }}
-              style={{
-                padding: "7px 12px",
-                borderRadius: 100,
-                border: sel ? "1.5px solid var(--accent-date)" : "1.5px solid var(--text-dim)",
-                background: sel ? "rgba(204,123,139,0.15)" : "var(--bg-card)",
-                color: sel ? "var(--text-main)" : "var(--text-sub)",
-                fontSize: 13,
-                fontWeight: sel ? 700 : 500,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                transition: "all 0.15s",
-              }}
+              style={chipStyle(sel, "var(--accent-date)", "rgba(204,123,139,0.15)")}
             >
               <span style={{ fontSize: 15 }}>{v.emoji}</span>
               <span>{v.label}</span>
