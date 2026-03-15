@@ -205,6 +205,15 @@ function scorePlaces(pool, pa, ctx, curSlot) {
         const isOutdoorPlace = ["둘레길","등산","해변","캠핑","글램핑"].some(k => pName2.includes(k));
         if (isIndoorAct && isOutdoorPlace) { score -= 10; }
 
+        // 스킨케어/미용 후 → 땀나는 야외 장소 페널티
+        const isBeautyAct = ["마스크팩","네일","스킨케어","그루밍","팩"].some(k => actName.includes(k));
+        const isSweatyPlace = ["둘레길","등산","한강공원","공원/하천","해변"].some(k => pName2.includes(k));
+        if (isBeautyAct && isSweatyPlace) { score -= 12; }
+
+        // 요리 후 → 쿠킹클래스는 어색 (이미 요리했는데 또 배우러?)
+        const isCookingAct = ["요리","레시피","밀키트","베이킹"].some(k => actName.includes(k));
+        if (isCookingAct && pName2.includes("쿠킹클래스")) { score -= 15; }
+
         // ── 활동 성격에 맞는 장소 추천 ──
         const homeType = getHomeActivityType(ctx.activity);
         const homePlaces = HOME_ACTIVITY_PLACES_BY_TYPE[homeType] || HOME_ACTIVITY_PLACES_BY_TYPE.default;
