@@ -80,6 +80,25 @@ function getMapQuery(name) {
   return "내 근처 " + clean;
 }
 
+// 카카오맵 열기 (앱 → 웹 폴백)
+function openKakaoMap(query) {
+  const encoded = encodeURIComponent(query);
+  // 모바일이면 앱 스킴 시도
+  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  if (isMobile) {
+    const appUrl = `kakaomap://search?q=${encoded}`;
+    const webUrl = `https://map.kakao.com/link/search/${encoded}`;
+    // 앱 열기 시도, 실패하면 웹으로
+    const start = Date.now();
+    window.location.href = appUrl;
+    setTimeout(() => {
+      if (Date.now() - start < 2000) window.open(webUrl, "_blank");
+    }, 1500);
+  } else {
+    window.open(`https://map.kakao.com/link/search/${encoded}`, "_blank");
+  }
+}
+
 export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideTabBar, pendingPlaceContext, onClearPendingContext }) {
   // ── 장소 탭 상태 ──
   const [placeScreen, setPlaceScreen] = useState("home"); // home | setup | tournament | result
@@ -462,12 +481,11 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                   color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
                   textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)"
                 }}>📍 구글맵</a>
-              <a href={`https://map.kakao.com/link/search/${encodeURIComponent(getMapQuery(placeResult.main.name))}`}
-                target="_blank" rel="noopener noreferrer" style={{
+              <button onClick={() => openKakaoMap(getMapQuery(placeResult.main.name))} style={{
                   flex:1, padding:"10px", borderRadius:10, background:"rgba(255,255,255,0.2)",
                   color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
-                  textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)"
-                }}>🗺️ 카카오맵</a>
+                  border:"1px solid rgba(255,255,255,0.3)", cursor:"pointer", fontFamily:"inherit"
+                }}>🗺️ 카카오맵</button>
             </div>
           </div>
 
@@ -499,11 +517,11 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                             padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
                             fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
                           }}>📍 구글맵</a>
-                        <a href={`https://map.kakao.com/link/search/${encodeURIComponent(getMapQuery(p.name))}`}
-                          target="_blank" rel="noopener noreferrer" style={{
+                        <button onClick={() => openKakaoMap(getMapQuery(p.name))} style={{
                             padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
-                            fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
-                          }}>🗺️ 카카오맵</a>
+                            fontSize:10, fontWeight:700, color:"var(--text-sub)", border:"none",
+                            cursor:"pointer", fontFamily:"inherit"
+                          }}>🗺️ 카카오맵</button>
                       </div>
                     </div>
                   </div>
