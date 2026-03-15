@@ -384,9 +384,10 @@ export function generatePlanReason(plan) {
   if (midActs.length === 1) {
     mid = `중간에 ${midActs[0].emoji} ${midActs[0].name}도 끼워넣고`;
   } else if (midActs.length === 2) {
-    mid = `${midActs[0].emoji} ${midActs[0].name}이랑 ${midActs[1].emoji} ${midActs[1].name}도 사이에 넣고`;
+    mid = `${midActs[0].emoji} ${midActs[0].name}, ${midActs[1].emoji} ${midActs[1].name}도 사이에 넣고`;
   } else if (midActs.length >= 3) {
-    mid = `중간중간 ${midActs.length}가지 더 채워넣고`;
+    // 구체적으로 나열 (첫 2개 + "외 N개")
+    mid = `${midActs[0].emoji} ${midActs[0].name}, ${midActs[1].emoji} ${midActs[1].name} 외 ${midActs.length - 2}개 더 넣고`;
   }
 
   // 밥은 밥이지 "흐름"이 아님
@@ -399,7 +400,7 @@ export function generatePlanReason(plan) {
     ? `좀 움직이다가 ${last.emoji} ${last.name}(으)로 마무리.`
     : `${last.emoji} ${last.name}(으)로 마무리.`;
 
-  return `${first.emoji} ${first.name}로 시작, ${mid} ${endNote} 약 ${timeText}.`;
+  return `${first.emoji} ${first.name}로 시작 → ${mid} → ${endNote} 약 ${timeText}.`;
 }
 
 // ── [수정 2] 코스 중복 제거 강화: anchor 동일 = 중복, threshold 60% ──
