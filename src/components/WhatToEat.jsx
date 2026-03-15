@@ -626,6 +626,24 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           );
         })()}
 
+        {/* 레시피 검색 버튼 */}
+        <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+          <button onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(foodChampion.name + " 레시피")}`, "_blank")} style={{
+            flex:1, padding:"14px 10px", background:"#FF0000", color:"#fff",
+            border:"none", borderRadius:14, fontSize:14, fontWeight:700,
+            cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6
+          }}>
+            ▶ 유튜브 레시피
+          </button>
+          <button onClick={() => window.open(`https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(foodChampion.name)}`, "_blank")} style={{
+            flex:1, padding:"14px 10px", background:"#4CAF50", color:"#fff",
+            border:"none", borderRadius:14, fontSize:14, fontWeight:700,
+            cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6
+          }}>
+            📖 만개의레시피
+          </button>
+        </div>
+
         {/* 어디가지 연결 버튼 */}
         <button onClick={() => goToPlaceFromContext({ from:"whatToEat", food: foodChampion })} style={{
           width:"100%", padding:"15px", marginBottom:8,
@@ -716,6 +734,25 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             <div style={{ fontSize:18, color:"var(--text-dim)", fontWeight:600 }}>카테고리 고르고 돌려!</div>
           )}
         </div>
+
+        {rouletteFood && (
+          <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+            <button onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(rouletteFood.name + " 레시피")}`, "_blank")} style={{
+              flex:1, padding:"13px 10px", background:"#FF0000", color:"#fff",
+              border:"none", borderRadius:14, fontSize:13, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6
+            }}>
+              ▶ 유튜브 레시피
+            </button>
+            <button onClick={() => window.open(`https://www.10000recipe.com/recipe/list.html?q=${encodeURIComponent(rouletteFood.name)}`, "_blank")} style={{
+              flex:1, padding:"13px 10px", background:"#4CAF50", color:"#fff",
+              border:"none", borderRadius:14, fontSize:13, fontWeight:700,
+              cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6
+            }}>
+              📖 만개의레시피
+            </button>
+          </div>
+        )}
 
         {!rouletteFood ? (
           <button onClick={startRoulette} disabled={spinning} style={{
