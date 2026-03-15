@@ -8,6 +8,20 @@ const PLACE_MOOD_VIBES = {
   random: [],
 };
 
+// 활동 장르 → 어울리는 장소 이름/태그/타입 매핑
+const GENRE_PLACE_MAP = {
+  cooking: { names:["대형마트","전통시장","푸드코트","맛집 탐방"], tags:["장보기","먹거리","시식"], types:["market","restaurant"] },
+  cafe: { names:["카페","브런치 카페"], tags:["카페","브런치","디저트"], types:["cafe"] },
+  art: { names:["미술관","갤러리","공방"], tags:["전시","미술","공방"], types:["gallery","craft"] },
+  reading: { names:["독립서점","도서관","북카페"], tags:["서점","독서","책"], types:["bookstore"] },
+  exercise: { names:["공원","운동장","체육관","클라이밍"], tags:["운동","산책","등산"], types:["sport","nature","park"] },
+  music: { names:["음악감상실","레코드샵","라이브바"], tags:["음악","라이브","공연"], types:["live","music"] },
+  game: { names:["보드게임카페","방탈출","VR 체험"], tags:["보드게임","방탈출","게임"], types:["play","game"] },
+  photo: { names:["포토존","전시","인생네컷"], tags:["사진","인스타","포토"], types:["photo"] },
+  walk: { names:["산책로","공원","한강","해변"], tags:["산책","자연","바다"], types:["nature","walk","park"] },
+  shopping: { names:["쇼핑몰","아울렛","올리브영"], tags:["쇼핑","쇼핑몰"], types:["shopping"] },
+};
+
 // 현재 시간대 구하기
 function getCurrentSlot() {
   const hour = new Date().getHours();
@@ -67,6 +81,16 @@ function scorePlaces(pool, pa, ctx, curSlot) {
     // 다른 탭에서 넘어온 경우 context 보너스
     if (ctx?.from === "whatToDo" && ctx.activity) {
       if (ctx.activity.vibe && p.vibe?.some(v => ctx.activity.vibe.includes(v))) score += 3;
+      // 활동 장르 → 어울리는 장소 강력 보너스/페널티
+      const genreMap = GENRE_PLACE_MAP[ctx.activity.genre];
+      if (genreMap) {
+        const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
+        const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
+        const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
+        if (nameMatch) score += 8;
+        else if (tagMatch || typeMatch) score += 5;
+        else score -= 3; // 장르와 관련 없는 장소 페널티
+      }
     }
     if (ctx?.from === "whatToEat") {
       // 음식 관련 장소 강력 보너스
@@ -149,8 +173,17 @@ export function buildTournamentBracket(pa, ctx, bracketSize = 16) {
     if (p.timeSlots?.includes(curSlot)) score += 2;
     if (pa?.who && p.withWho?.includes(pa.who)) score += 2;
     if (pa?.budget && p.budget?.includes(pa.budget)) score += 1;
-    if (ctx?.from === "whatToDo" && ctx.activity?.vibe) {
-      score += p.vibe.filter(v => ctx.activity.vibe.includes(v)).length * 2;
+    if (ctx?.from === "whatToDo" && ctx.activity) {
+      if (ctx.activity.vibe) score += p.vibe.filter(v => ctx.activity.vibe.includes(v)).length * 2;
+      const genreMap = GENRE_PLACE_MAP[ctx.activity.genre];
+      if (genreMap) {
+        const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
+        const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
+        const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
+        if (nameMatch) score += 6;
+        else if (tagMatch || typeMatch) score += 4;
+        else score -= 2;
+      }
     }
     if (ctx?.from === "whatToEat") {
       const foodPlaceTypes = ["cafe", "restaurant", "market", "bar"];
