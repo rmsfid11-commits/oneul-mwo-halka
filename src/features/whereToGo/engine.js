@@ -58,12 +58,52 @@ function isHomeActivity(activity) {
   return false;
 }
 
-// 집 활동용 장소 매핑 — "밖에 나간다면 여기"
-const HOME_ACTIVITY_PLACES = {
-  names: ["만화카페/멀티방","찜질방/사우나","24시 찜질방","조용한 카페",
-          "편의점 앞 벤치","24시 카페","동네 카페","무인매장/편의점"],
-  tags: ["편안함","오래머물기","실내","조용함"],
+// 집 활동용 장소 매핑 — 활동 성격별로 세분화
+const HOME_ACTIVITY_PLACES_BY_TYPE = {
+  // 릴랙스 계열 (드라마, 유튜브, 향초 등) → 카페, 산책, 편의점
+  relax: {
+    names: ["조용한 카페","동네 카페","편의점 앞 벤치","짧게 걷기 좋은 동네","찜질방/사우나","24시 카페"],
+    tags: ["편안함","조용함","산책","카페"],
+  },
+  // 운동 계열 (홈트, 요가, 스트레칭) → 편의점, 공원, 주스
+  exercise: {
+    names: ["편의점 앞 벤치","공원/하천","동네 카페","짧게 걷기 좋은 동네","무인매장/편의점"],
+    tags: ["산책","활동적","자연"],
+  },
+  // 정리 계열 (청소, 옷장정리) → 다이소, 마트 (보충/보상)
+  tidy: {
+    names: ["다이소/문구점","대형마트","동네 카페","올리브영","편의점 앞 벤치"],
+    tags: ["쇼핑","정리","편안함"],
+  },
+  // 몰입 계열 (게임, 코딩, 독서) → 만화카페, 카페
+  focus: {
+    names: ["만화카페/멀티방","스터디카페","24시 카페","동네 카페","편의점 앞 벤치"],
+    tags: ["오래머물기","실내","조용함"],
+  },
+  // 기본 (분류 안 될 때)
+  default: {
+    names: ["동네 카페","편의점 앞 벤치","짧게 걷기 좋은 동네","찜질방/사우나","24시 카페","무인매장/편의점"],
+    tags: ["편안함","오래머물기","실내","조용함"],
+  },
 };
+
+// 집 활동의 세부 타입 판별
+function getHomeActivityType(activity) {
+  if (!activity) return "default";
+  const name = activity.name || "";
+  const genre = activity.genre || "";
+  const vibe = activity.vibe || [];
+  const need = activity.tags?.need || [];
+  // 운동 계열
+  if (["fitness","exercise","sport"].includes(genre) || ["홈트","요가","스트레칭","운동","플랭크"].some(k => name.includes(k))) return "exercise";
+  // 정리 계열
+  if (genre === "tidy" || ["정리","청소"].some(k => name.includes(k)) || need.includes("정리정돈")) return "tidy";
+  // 몰입 계열
+  if (["game","digital","reading"].includes(genre) || ["게임","코딩","독서","공부"].some(k => name.includes(k))) return "focus";
+  // 릴랙스 계열
+  if (["넷플릭스","유튜브","드라마","향초","음악","일기","명상"].some(k => name.includes(k)) || vibe.some(v => ["고요함","따뜻함","혼자만의시간"].includes(v))) return "relax";
+  return "default";
+}
 
 // 현재 시간대 구하기
 function getCurrentSlot() {
@@ -126,9 +166,11 @@ function scorePlaces(pool, pa, ctx, curSlot) {
       const homeAct = isHomeActivity(ctx.activity);
 
       if (homeAct) {
-        // 집 활동 → 밖에 나간다면 편한 곳 위주
-        const nameMatch = HOME_ACTIVITY_PLACES.names.some(n => p.name?.includes(n));
-        const tagMatch = HOME_ACTIVITY_PLACES.tags.some(t => p.tags?.includes(t));
+        // 집 활동 → 활동 성격에 맞는 장소 추천
+        const homeType = getHomeActivityType(ctx.activity);
+        const homePlaces = HOME_ACTIVITY_PLACES_BY_TYPE[homeType] || HOME_ACTIVITY_PLACES_BY_TYPE.default;
+        const nameMatch = homePlaces.names.some(n => p.name?.includes(n));
+        const tagMatch = homePlaces.tags.some(t => p.tags?.includes(t));
         if (nameMatch) score += 15;
         else if (tagMatch) score += 8;
         else score -= 10; // 관련 없는 곳 강력 배제
@@ -175,17 +217,53 @@ function buildConnectionReason(place, ctx) {
     const isHome = isHomeActivity(act);
 
     if (isHome) {
-      // 집 활동 → 장소 연결 이유
-      if (pName.includes("찜질방") || pName.includes("사우나"))
-        return `${act.name} 하기 전에 몸 좀 풀고 가면 더 집중돼. 아니면 끝나고 보상으로 가도 좋아.`;
-      if (pName.includes("만화카페") || pName.includes("멀티방"))
-        return `집에서만 하기 지겨우면 여기서 해봐. 분위기 바뀌면 새로운 느낌이야.`;
-      if (pName.includes("편의점"))
-        return `간식 사서 돌아오면 ${act.name}이 더 즐거워져. 잠깐 바람 쐬기도 하고.`;
-      if (pName.includes("카페"))
-        return `카페에서 커피 한 잔 하고 돌아오면 ${act.name}에 더 집중돼.`;
-      if (pName.includes("호캉스") || pName.includes("호텔"))
-        return `평소 환경을 바꿔서 ${act.name} 해보면 특별해져.`;
+      // 집 활동 → 활동 타입별 장소 연결 이유
+      const homeType = getHomeActivityType(act);
+      if (homeType === "relax") {
+        if (pName.includes("찜질방") || pName.includes("사우나"))
+          return `${act.name} 끝나고 찜질방 가면 완벽한 힐링 코스야.`;
+        if (pName.includes("카페"))
+          return `${act.name} 하기 전에 카페에서 음료 하나 테이크아웃 해오면 꿀조합이야.`;
+        if (pName.includes("편의점"))
+          return `간식이랑 음료 사 가지고 들어가면 ${act.name}이 더 완벽해져.`;
+        if (pName.includes("걷기") || pName.includes("산책"))
+          return `${act.name} 하고 나서 가볍게 동네 한 바퀴 돌면 기분 전환 돼.`;
+        return `${act.name}은 집이 최고지! 나가기 전이나 후에 잠깐 들러봐.`;
+      }
+      if (homeType === "exercise") {
+        if (pName.includes("편의점") || pName.includes("무인"))
+          return `운동 끝나고 단백질 음료 하나 사먹으면 보상 느낌이야.`;
+        if (pName.includes("공원") || pName.includes("걷기"))
+          return `실내 운동 하기 전에 가볍게 걸어서 몸 풀면 좋아.`;
+        if (pName.includes("카페"))
+          return `운동 끝나고 커피 한 잔이면 완벽한 루틴이야.`;
+        return `${act.name} 전후로 잠깐 나가서 바람 쐬고 와.`;
+      }
+      if (homeType === "tidy") {
+        if (pName.includes("다이소") || pName.includes("문구"))
+          return `정리하다 보면 필요한 게 생기지? 수납용품 사러 가기 딱이야.`;
+        if (pName.includes("마트"))
+          return `정리 끝나면 냉장고도 채워야지. 장 보러 가기 좋은 타이밍이야.`;
+        if (pName.includes("카페"))
+          return `${act.name} 열심히 한 나에게 보상! 카페에서 쉬어가.`;
+        if (pName.includes("올리브영"))
+          return `정리하다 떨어진 생필품 사러 가기 딱이야.`;
+        return `${act.name} 끝나고 보상으로 잠깐 나갔다 와.`;
+      }
+      if (homeType === "focus") {
+        if (pName.includes("만화카페") || pName.includes("멀티방"))
+          return `집에서 하기 지겨우면 여기서 해봐. 분위기 바뀌면 새로운 느낌이야.`;
+        if (pName.includes("스터디") || pName.includes("24시"))
+          return `집중이 안 되면 장소를 바꿔보는 것도 방법이야.`;
+        if (pName.includes("편의점"))
+          return `간식 사서 돌아오면 ${act.name}에 더 집중돼.`;
+        if (pName.includes("카페"))
+          return `카페 분위기에서 하면 집중력이 달라져.`;
+        return `${act.name} 중간에 환기 겸 잠깐 나갔다 와.`;
+      }
+      // default
+      if (pName.includes("카페")) return `${act.name} 전후로 카페 한 잔이면 하루가 완성이야.`;
+      if (pName.includes("편의점")) return `잠깐 바람 쐬면서 간식 사오면 더 좋아.`;
       return `${act.name} 전후로 잠깐 나갔다 오면 기분 전환돼.`;
     }
 
