@@ -168,7 +168,27 @@ function scorePlaces(pool, pa, ctx, curSlot) {
       const homeAct = isHomeActivity(ctx.activity);
 
       if (homeAct) {
-        // 집 활동 → 활동 성격에 맞는 장소 추천
+        const actName = ctx.activity.name || "";
+        const pName2 = p.name || "";
+
+        // ── 활동-장소 충돌 페널티 (이미 한 걸 또 하라고 하면 안 됨) ──
+        // 씻기/목욕 계열 → 찜질방/사우나/온천/스파 제외
+        const isBathAct = ["반신욕","목욕","샤워","입욕","족욕","그루밍","때밀기"].some(k => actName.includes(k));
+        const isBathPlace = ["찜질방","사우나","온천","스파","24시 찜질방"].some(k => pName2.includes(k));
+        if (isBathAct && isBathPlace) { score -= 30; }
+
+        // 운동/땀 계열 → 찜질방/사우나 페널티 (씻고 싶지 또 땀나게 하면 안 됨)
+        const isSweatAct = ["홈트","운동","스트레칭","요가","플랭크","줄넘기","댄스"].some(k => actName.includes(k));
+        if (isSweatAct && isBathPlace) { score -= 20; }
+
+        // 청소/정리 → 또 정리 관련 장소 약간 페널티
+        const isTidyAct = ["청소","정리","빨래"].some(k => actName.includes(k));
+        const isTidyPlace = ["다이소","마트"].some(k => pName2.includes(k));
+        // 정리 후 보충 목적이면 오히려 OK → 페널티 안 줌
+
+        // 게임/코딩 → 만화카페/멀티방은 OK지만 스터디카페는 분위기 다름 → 그대로 둠
+
+        // ── 활동 성격에 맞는 장소 추천 ──
         const homeType = getHomeActivityType(ctx.activity);
         const homePlaces = HOME_ACTIVITY_PLACES_BY_TYPE[homeType] || HOME_ACTIVITY_PLACES_BY_TYPE.default;
         const nameMatch = homePlaces.names.some(n => p.name?.includes(n));
@@ -224,7 +244,9 @@ function buildConnectionReason(place, ctx) {
       // 집 활동 → 활동 타입별 장소 연결 이유
       const homeType = getHomeActivityType(act);
       if (homeType === "relax") {
-        if (pName.includes("찜질방") || pName.includes("사우나"))
+        // 씻기 활동이면 찜질방 메시지 다르게
+        const isBath = ["반신욕","목욕","샤워","입욕","족욕","그루밍"].some(k => act.name?.includes(k));
+        if ((pName.includes("찜질방") || pName.includes("사우나")) && !isBath)
           return `${act.name} 끝나고 찜질방 가면 완벽한 힐링 코스야.`;
         if (pName.includes("카페"))
           return `${act.name} 하기 전에 카페에서 음료 하나 테이크아웃 해오면 꿀조합이야.`;
