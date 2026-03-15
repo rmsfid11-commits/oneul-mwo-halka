@@ -318,21 +318,28 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             <div style={{ fontSize:20, fontWeight:800 }}>추천 장소</div>
           </div>
 
-          {/* context 안내 */}
+          {/* context 안내 — 연결 이유 강조 */}
           {placeContext && (
             <div style={{
-              background:"var(--bg-card)", borderRadius:14, padding:"12px 16px", marginBottom:16,
-              display:"flex", alignItems:"center", gap:10, fontSize:13, color:"var(--text-sub)",
-              border:"1px solid rgba(255,255,255,0.06)"
+              background:"linear-gradient(135deg, rgba(102,126,234,0.15) 0%, rgba(118,75,162,0.15) 100%)",
+              borderRadius:16, padding:"16px 18px", marginBottom:16,
+              border:"1px solid rgba(102,126,234,0.25)"
             }}>
-              <span style={{ fontSize:20 }}>{placeContext.from === "whatToDo" ? "✨" : "🍽️"}</span>
-              <span>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                <span style={{ fontSize:22 }}>{placeContext.from === "whatToDo" ? (placeContext.activity?.emoji || "✨") : "🍽️"}</span>
+                <span style={{ fontSize:15, fontWeight:800, color:"var(--text-main)" }}>
+                  {placeContext.from === "whatToDo"
+                    ? placeContext.activity?.name
+                    : (placeContext.food?.name || "맛집")}
+                </span>
+              </div>
+              <div style={{ fontSize:13, color:"var(--text-sub)", lineHeight:1.6 }}>
                 {placeContext.from === "whatToDo" && placeContext.activity?.tags?.location?.[0] === "home"
-                  ? `${placeContext.activity?.name} 전후로 잠깐 들르기 좋은 곳이야`
+                  ? "집에서 하는 활동이니까, 전후로 잠깐 나갔다 올 만한 곳을 찾아봤어."
                   : placeContext.from === "whatToDo"
-                  ? `${placeContext.activity?.name}에 어울리는 장소야`
-                  : `${placeContext.food?.name || "맛집"} 먹기 좋은 곳이야`}
-              </span>
+                  ? "이 활동에 어울리는 장소를 찾아봤어."
+                  : "이거 먹으러 가기 좋은 곳을 찾아봤어."}
+              </div>
             </div>
           )}
 
@@ -341,7 +348,16 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
             borderRadius:20, padding:"28px 22px", color:"#fff", marginBottom:16
           }}>
-            <div style={{ fontSize:13, opacity:0.8, marginBottom:8 }}>오늘의 추천 — {placeResult.reason}</div>
+            <div style={{ fontSize:12, opacity:0.7, marginBottom:placeResult.connectionReason ? 6 : 8 }}>오늘의 추천 — {placeResult.reason}</div>
+            {placeResult.connectionReason && (
+              <div style={{
+                fontSize:13, fontWeight:600, lineHeight:1.6, marginBottom:10,
+                padding:"10px 14px", background:"rgba(255,255,255,0.12)", borderRadius:12,
+                color:"rgba(255,255,255,0.95)"
+              }}>
+                💡 {placeResult.connectionReason}
+              </div>
+            )}
             <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
               <div style={{ fontSize:40 }}>{placeResult.main.emoji}</div>
               <div>

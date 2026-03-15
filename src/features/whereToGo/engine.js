@@ -165,6 +165,70 @@ function scorePlaces(pool, pa, ctx, curSlot) {
   }).sort((a, b) => b.score - a.score);
 }
 
+// 장소-활동 연결 이유 생성 (왜 이 장소를 추천하는지)
+function buildConnectionReason(place, ctx) {
+  if (!ctx) return null;
+
+  if (ctx.from === "whatToDo" && ctx.activity) {
+    const act = ctx.activity;
+    const pName = place.name || "";
+    const isHome = isHomeActivity(act);
+
+    if (isHome) {
+      // 집 활동 → 장소 연결 이유
+      if (pName.includes("찜질방") || pName.includes("사우나"))
+        return `${act.name} 하기 전에 몸 좀 풀고 가면 더 집중돼. 아니면 끝나고 보상으로 가도 좋아.`;
+      if (pName.includes("만화카페") || pName.includes("멀티방"))
+        return `집에서만 하기 지겨우면 여기서 해봐. 분위기 바뀌면 새로운 느낌이야.`;
+      if (pName.includes("편의점"))
+        return `간식 사서 돌아오면 ${act.name}이 더 즐거워져. 잠깐 바람 쐬기도 하고.`;
+      if (pName.includes("카페"))
+        return `카페에서 커피 한 잔 하고 돌아오면 ${act.name}에 더 집중돼.`;
+      if (pName.includes("호캉스") || pName.includes("호텔"))
+        return `평소 환경을 바꿔서 ${act.name} 해보면 특별해져.`;
+      return `${act.name} 전후로 잠깐 나갔다 오면 기분 전환돼.`;
+    }
+
+    // 일반 활동 → 장소
+    const genre = act.genre;
+    if (genre === "cooking" && (pName.includes("마트") || pName.includes("시장") || pName.includes("식재료")))
+      return `요리에 필요한 재료 여기서 사면 돼. 신선한 걸로 골라봐.`;
+    if (genre === "cooking" && pName.includes("쿠킹클래스"))
+      return `혼자 하기 막막하면 여기서 배우면서 해봐. 레시피도 얻어가고.`;
+    if (genre === "art" && (pName.includes("전시") || pName.includes("갤러리")))
+      return `직접 만드는 것도 좋지만, 다른 작품 보면 영감이 와.`;
+    if (genre === "reading" && (pName.includes("서점") || pName.includes("도서관")))
+      return `새로운 책 발견하거나 조용히 읽기 좋은 곳이야.`;
+    if (genre === "exercise" || genre === "sport" || genre === "fitness")
+      return `운동하기 딱 좋은 환경이야. 끝나고 근처에서 쉬어가도 좋고.`;
+    if (genre === "walk" || genre === "nature")
+      return `걷기 좋은 길이 잘 되어 있어. 천천히 둘러봐.`;
+    if (genre === "craft" && pName.includes("원데이클래스"))
+      return `전문가한테 배우면서 만들면 완성도가 다르지.`;
+    if (genre === "photo")
+      return `여기 사진 찍기 좋아. 감성 제대로 나와.`;
+    if (genre === "social")
+      return `사람들이랑 어울리기 좋은 분위기야.`;
+    if (genre === "healing" || genre === "relax")
+      return `제대로 쉬려면 이런 데 와야지. 일상에서 벗어나봐.`;
+    if (genre === "travel")
+      return `여행 기분 내기 딱 좋아. 가벼운 마음으로 가봐.`;
+    return null;
+  }
+
+  if (ctx.from === "whatToEat" && ctx.food) {
+    const pName = place.name || "";
+    if (pName.includes("맛집")) return `${ctx.food.name} 맛집 검색하고 가봐. 후기 좋은 데 많아.`;
+    if (pName.includes("시장")) return `시장에서 먹는 ${ctx.food.name}은 또 다른 맛이야.`;
+    if (pName.includes("포장마차") || pName.includes("야시장")) return `밤에 여기서 먹으면 분위기까지 맛있어.`;
+    if (pName.includes("푸드코트")) return `같이 온 사람이랑 각자 먹고 싶은 거 시켜도 돼.`;
+    if (pName.includes("카페")) return `${ctx.food.name} 먹고 후식으로 커피 한 잔까지.`;
+    return `${ctx.food.name} 먹기 좋은 분위기야.`;
+  }
+
+  return null;
+}
+
 // 추천 이유 생성
 function buildReason(pa, ctx, curSlot) {
   const reasons = [];
@@ -205,10 +269,12 @@ export function recommendPlace(pa, ctx) {
   // 스코어링
   const scored = scorePlaces(pool, pa, ctx, curSlot);
 
+  const mainPlace = scored[0]?.place;
   return {
-    main: scored[0]?.place,
+    main: mainPlace,
     alternatives: scored.slice(1, 4).map(s => s.place),
     reason: buildReason(pa, ctx, curSlot),
+    connectionReason: mainPlace ? buildConnectionReason(mainPlace, ctx) : null,
   };
 }
 
