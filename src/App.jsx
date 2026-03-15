@@ -2,12 +2,11 @@ import React, { useState, useRef, useCallback } from "react";
 import WhatToDo from './components/WhatToDo.jsx';
 import WhatToEat from './components/WhatToEat.jsx';
 import WhereToGo from './components/WhereToGo.jsx';
-import SplashScreen from './components/shared/SplashScreen.jsx';
 import SituationScreen from './components/shared/SituationScreen.jsx';
 
 export default function VibeApp() {
   // ── 앱 진입 상태 ──
-  const [appPhase, setAppPhase] = useState("splash"); // splash | situation | main
+  const [appPhase, setAppPhase] = useState("situation"); // situation | main
   const [situation, setSituation] = useState(null); // alone | date | friend | random
 
   // ── 공유 상태 ──
@@ -75,11 +74,6 @@ export default function VibeApp() {
     random: "#CCAA7B",
   };
   const accent = accentColors[situation] || accentColors.random;
-
-  // ── 스플래시 ──
-  if (appPhase === "splash") {
-    return <SplashScreen onDone={() => setAppPhase("situation")} />;
-  }
 
   // ── 상황 선택 ──
   if (appPhase === "situation") {
