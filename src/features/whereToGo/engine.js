@@ -9,17 +9,41 @@ const PLACE_MOOD_VIBES = {
 };
 
 // 활동 장르 → 어울리는 장소 이름/태그/타입 매핑
+// ⚠️ 이름은 반드시 places.js의 실제 name 값 기준 (부분 매칭 = includes)
 const GENRE_PLACE_MAP = {
-  cooking: { names:["대형마트","전통시장","푸드코트","맛집 탐방"], tags:["장보기","먹거리","시식"], types:["market","restaurant"] },
-  cafe: { names:["카페","브런치 카페"], tags:["카페","브런치","디저트"], types:["cafe"] },
-  art: { names:["미술관","갤러리","공방"], tags:["전시","미술","공방"], types:["gallery","craft"] },
-  reading: { names:["독립서점","도서관","북카페"], tags:["서점","독서","책"], types:["bookstore"] },
-  exercise: { names:["공원","운동장","체육관","클라이밍"], tags:["운동","산책","등산"], types:["sport","nature","park"] },
-  music: { names:["음악감상실","레코드샵","라이브바"], tags:["음악","라이브","공연"], types:["live","music"] },
-  game: { names:["보드게임카페","방탈출","VR 체험"], tags:["보드게임","방탈출","게임"], types:["play","game"] },
-  photo: { names:["포토존","전시","인생네컷"], tags:["사진","인스타","포토"], types:["photo"] },
-  walk: { names:["산책로","공원","한강","해변"], tags:["산책","자연","바다"], types:["nature","walk","park"] },
-  shopping: { names:["쇼핑몰","아울렛","올리브영"], tags:["쇼핑","쇼핑몰"], types:["shopping"] },
+  // 기존 10개 (깨진 참조 수정)
+  cooking:  { names:["대형마트","전통시장","푸드코트","맛집 탐방","쿠킹클래스","식재료"], tags:["장보기","먹거리","시식","요리"], types:["market","restaurant","craft"] },
+  cafe:     { names:["카페","브런치"], tags:["카페","브런치","디저트","커피"], types:["cafe"] },
+  art:      { names:["전시회/갤러리","박물관/과학관","복합문화공간"], tags:["전시","문화생활"], types:["culture","craft"] },
+  reading:  { names:["독립서점","도서관","서점/독서카페","대형서점","스터디카페"], tags:["서점","독서"], types:["culture"] },
+  exercise: { names:["공원/하천","한강공원","둘레길/산책로","호수공원"], tags:["운동","산책","활동적"], types:["nature","walk","outdoor"] },
+  music:    { names:["레코드샵/음반가게","공연/뮤지컬","복합문화공간"], tags:["음악","라이브","공연"], types:["culture"] },
+  game:     { names:["만화카페/멀티방","복합문화공간"], tags:["게임"], types:["indoor"] },
+  photo:    { names:["사진관/셀프스튜디오","전시회/갤러리","감성 벽화마을","핫플"], tags:["사진","인스타","포토"], types:["culture"] },
+  walk:     { names:["공원/하천","둘레길/산책로","한강공원","해변/강변","짧게 걷기 좋은 동네"], tags:["산책","자연","바다"], types:["nature","walk","outdoor"] },
+  shopping: { names:["쇼핑몰/아울렛","백화점","올리브영","편집샵/셀렉트샵"], tags:["쇼핑","쇼핑몰"], types:["shopping"] },
+
+  // 추가 15개 장르
+  tidy:     { names:["다이소/문구점","대형마트","올리브영"], tags:["정리","수납","인테리어"], types:["shopping","indoor"] },
+  culture:  { names:["전시회/갤러리","박물관/과학관","공연/뮤지컬","복합문화공간","영화관"], tags:["문화생활","전시","공연"], types:["culture"] },
+  healing:  { names:["온천/스파","찜질방/사우나","명상센터","사찰/절","수목원/식물원"], tags:["힐링","마음챙김","이완"], types:["relax","nature"] },
+  travel:   { names:["드라이브 코스","해안도로","터미널","제주 올레길","한옥마을","게스트하우스"], tags:["드라이브","여행","당일치기"], types:["drive","outdoor","view"] },
+  sport:    { names:["한강공원","공원/하천","둘레길/산책로","해변/강변"], tags:["운동","자전거","활동적"], types:["nature","walk","outdoor"] },
+  nature:   { names:["수목원/식물원","공원/하천","해변/강변","호수공원","둘레길/산책로","실내 식물원"], tags:["자연","힐링","산책"], types:["nature","outdoor"] },
+  water:    { names:["해변/강변","한강공원","해운대/광안리","해안도로","새벽 한강","아쿠아리움"], tags:["바다","물","해변"], types:["outdoor","nature","view"] },
+  food:     { names:["맛집 탐방","포장마차/야시장","한강 치맥","푸드코트","고깃집","분식집","찜닭골목"], tags:["맛집","먹방","맛있는","먹거리"], types:["restaurant","market"] },
+  camp:     { names:["글램핑장","펜션","게스트하우스","농장체험"], tags:["캠핑","야외숙박","글램핑"], types:["outdoor"] },
+  craft:    { names:["쿠킹클래스/원데이클래스","빈티지/플리마켓","농장체험","복합문화공간"], tags:["만들기","DIY","체험"], types:["craft"] },
+  digital:  { names:["스터디카페","도서관","작업하기 좋은 카페","24시 카페"], tags:["작업","온라인"], types:["cafe","culture"] },
+  social:   { names:["바/펍","고깃집","한강 치맥","포장마차/야시장","번화가"], tags:["친구","술","모임"], types:["bar","restaurant"] },
+  learn:    { names:["도서관","박물관/과학관","대형서점","복합문화공간","대학교 캠퍼스"], tags:["공부","학습","문화생활"], types:["culture"] },
+  beauty:   { names:["올리브영/드럭스토어","백화점","편집샵/셀렉트샵","온천/스파"], tags:["뷰티","쇼핑","셀프케어"], types:["shopping"] },
+  move:     { names:["드라이브 코스","번화가","핫플","짧게 걷기 좋은 동네"], tags:["드라이브","산책"], types:["drive","walk"] },
+  relax:    { names:["온천/스파","찜질방/사우나","24시 찜질방","호캉스","조용한 카페"], tags:["힐링","이완","편안함"], types:["relax","cafe"] },
+  pet:      { names:["반려동물 카페","애견동반 카페","공원/하천","한강공원"], tags:["반려동물","애견"], types:["cafe","nature"] },
+  mountain: { names:["둘레길/산책로","수목원/식물원","제주 올레길","사찰/절"], tags:["등산","산책","자연"], types:["nature","outdoor","walk"] },
+  fitness:  { names:["한강공원","공원/하천","해변/강변","둘레길/산책로"], tags:["운동","자전거","조깅"], types:["nature","outdoor"] },
+  cycling:  { names:["한강공원","해안도로","드라이브 코스","공원/하천"], tags:["자전거","라이딩"], types:["nature","outdoor","drive"] },
 };
 
 // 현재 시간대 구하기
@@ -94,15 +118,16 @@ function scorePlaces(pool, pa, ctx, curSlot) {
     }
     if (ctx?.from === "whatToEat") {
       // 음식 관련 장소 강력 보너스
-      const foodPlaceTypes = ["cafe", "restaurant", "market", "bar"];
-      const isFoodPlace = foodPlaceTypes.some(t => p.type?.includes(t))
-        || p.tags?.some(t => ["맛집","먹방","먹거리","카페","브런치","디저트","길거리음식"].includes(t))
-        || ["맛집 탐방","전통시장","포장마차/야시장","브런치 카페","편의점 앞 벤치"].includes(p.name);
-      if (isFoodPlace) score += 10;
-      // 음식과 무관한 장소 페널티 (마사지, 스파, 운동 등)
-      const nonFoodTypes = ["relax", "sport", "nature"];
-      const isNonFood = !isFoodPlace && nonFoodTypes.some(t => p.type?.includes(t));
-      if (isNonFood) score -= 5;
+      const foodPlaceNames = ["맛집 탐방","고깃집","분식집","회전초밥","찜닭골목","포장마차/야시장",
+        "푸드코트","한강 치맥","오션뷰 맛집","전통시장","브런치 카페","편의점 앞 벤치"];
+      const foodTags = ["맛집","먹방","먹거리","카페","브런치","디저트","길거리음식","먹자골목"];
+      const foodTypes = ["cafe","restaurant","market","bar"];
+      const isFoodPlace = foodPlaceNames.some(n => p.name?.includes(n))
+        || foodTypes.some(t => p.type?.includes(t))
+        || p.tags?.some(t => foodTags.includes(t));
+      if (isFoodPlace) score += 12;
+      // 음식과 완전 무관한 장소 강력 페널티
+      if (!isFoodPlace) score -= 6;
     }
 
     score += Math.random() * 1.5;
@@ -186,12 +211,15 @@ export function buildTournamentBracket(pa, ctx, bracketSize = 16) {
       }
     }
     if (ctx?.from === "whatToEat") {
-      const foodPlaceTypes = ["cafe", "restaurant", "market", "bar"];
-      const isFoodPlace = foodPlaceTypes.some(t => p.type?.includes(t))
-        || p.tags?.some(t => ["맛집","먹방","먹거리","카페","브런치","디저트","길거리음식"].includes(t));
-      if (isFoodPlace) score += 6;
-      const nonFoodTypes = ["relax", "sport", "nature"];
-      if (!isFoodPlace && nonFoodTypes.some(t => p.type?.includes(t))) score -= 4;
+      const foodPlaceNames = ["맛집 탐방","고깃집","분식집","회전초밥","찜닭골목","포장마차/야시장",
+        "푸드코트","한강 치맥","오션뷰 맛집","전통시장","브런치 카페","편의점 앞 벤치"];
+      const foodTags = ["맛집","먹방","먹거리","카페","브런치","디저트","길거리음식","먹자골목"];
+      const foodTypes = ["cafe","restaurant","market","bar"];
+      const isFoodPlace = foodPlaceNames.some(n => p.name?.includes(n))
+        || foodTypes.some(t => p.type?.includes(t))
+        || p.tags?.some(t => foodTags.includes(t));
+      if (isFoodPlace) score += 8;
+      if (!isFoodPlace) score -= 4;
     }
     score += Math.random() * 1;
     return { ...p, score };
