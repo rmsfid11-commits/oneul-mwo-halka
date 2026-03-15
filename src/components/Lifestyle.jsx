@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { recipes, recipeCategories, lifeTips, repairTips, bugTips, emergencyTips } from "../data/lifestyle.js";
+import { recipes, recipeCategories, cuisineCategories, jpSubcategories, krSubcategories, lifeTips, repairTips, bugTips, emergencyTips } from "../data/lifestyle.js";
 
 // ── 카테고리 목록 ──
 const CATEGORIES = [
@@ -14,14 +14,31 @@ const CATEGORIES = [
 export default function Lifestyle() {
   const [screen, setScreen] = useState("home");
   const [recipeCat, setRecipeCat] = useState("all");
+  const [cuisineFilter, setCuisineFilter] = useState("all");
+  const [jpSub, setJpSub] = useState("all");
+  const [krSub, setKrSub] = useState("all");
   const [openTip, setOpenTip] = useState(null);
   const [openRecipe, setOpenRecipe] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   // ── 레시피 필터 ──
-  const filteredRecipes = recipeCat === "all"
-    ? recipes
-    : recipes.filter(r => r.category === recipeCat);
+  let filteredRecipes = recipes;
+  // 국가별 필터
+  if (cuisineFilter !== "all") {
+    filteredRecipes = filteredRecipes.filter(r => r.cuisine === cuisineFilter);
+  }
+  // 카테고리 필터
+  if (recipeCat !== "all") {
+    filteredRecipes = filteredRecipes.filter(r => r.category === recipeCat);
+  }
+  // 일식 하위 카테고리
+  if (cuisineFilter === "일식" && jpSub !== "all") {
+    filteredRecipes = filteredRecipes.filter(r => r.subcategory === jpSub);
+  }
+  // 한식 하위 카테고리
+  if (cuisineFilter === "한식" && krSub !== "all") {
+    filteredRecipes = filteredRecipes.filter(r => r.category === krSub);
+  }
 
   // ── 팁 검색 ──
   function getAllTips() {
@@ -153,21 +170,89 @@ export default function Lifestyle() {
       {screen === "recipe" && (<>
         {backBtn()}
         <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 4 }}>🍳 뭐 해먹지</div>
-        <div style={{ fontSize: 13, color: "var(--text-sub)", marginBottom: 16 }}>집에서 해먹는 레시피</div>
+        <div style={{ fontSize: 13, color: "var(--text-sub)", marginBottom: 12 }}>총 {recipes.length}개 레시피</div>
 
-        {/* 카테고리 필터 */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-          {recipeCategories.map(cat => (
-            <button key={cat.key} onClick={() => setRecipeCat(cat.key)} style={{
-              padding: "8px 14px", borderRadius: 100, fontSize: 13, fontWeight: 700,
-              border: recipeCat === cat.key ? "1.5px solid var(--text-main)" : "1.5px solid var(--text-dim)",
-              background: recipeCat === cat.key ? "var(--text-main)" : "var(--bg-card)",
-              color: recipeCat === cat.key ? "var(--bg-main)" : "var(--text-sub)",
-              cursor: "pointer", fontFamily: "inherit",
-            }}>
-              {cat.emoji} {cat.label}
-            </button>
-          ))}
+        {/* 국가별 필터 */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", marginBottom: 6 }}>국가별</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {cuisineCategories.map(cat => (
+              <button key={cat.key} onClick={() => { setCuisineFilter(cat.key); setRecipeCat("all"); setJpSub("all"); setKrSub("all"); }} style={{
+                padding: "6px 12px", borderRadius: 100, fontSize: 12, fontWeight: 700,
+                border: cuisineFilter === cat.key ? "1.5px solid var(--text-main)" : "1.5px solid var(--text-dim)",
+                background: cuisineFilter === cat.key ? "var(--text-main)" : "var(--bg-card)",
+                color: cuisineFilter === cat.key ? "var(--bg-main)" : "var(--text-sub)",
+                cursor: "pointer", fontFamily: "inherit",
+              }}>
+                {cat.emoji} {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 한식 하위 카테고리 */}
+        {cuisineFilter === "한식" && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", marginBottom: 6 }}>분류</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {krSubcategories.map(cat => (
+                <button key={cat.key} onClick={() => { setKrSub(cat.key); setRecipeCat("all"); }} style={{
+                  padding: "6px 12px", borderRadius: 100, fontSize: 12, fontWeight: 700,
+                  border: krSub === cat.key ? "1.5px solid var(--text-main)" : "1.5px solid var(--text-dim)",
+                  background: krSub === cat.key ? "var(--text-main)" : "var(--bg-card)",
+                  color: krSub === cat.key ? "var(--bg-main)" : "var(--text-sub)",
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 일식 하위 카테고리 */}
+        {cuisineFilter === "일식" && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", marginBottom: 6 }}>분류</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {jpSubcategories.map(cat => (
+                <button key={cat.key} onClick={() => setJpSub(cat.key)} style={{
+                  padding: "6px 12px", borderRadius: 100, fontSize: 12, fontWeight: 700,
+                  border: jpSub === cat.key ? "1.5px solid var(--text-main)" : "1.5px solid var(--text-dim)",
+                  background: jpSub === cat.key ? "var(--text-main)" : "var(--bg-card)",
+                  color: jpSub === cat.key ? "var(--bg-main)" : "var(--text-sub)",
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 용도별 필터 */}
+        {cuisineFilter === "all" && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", marginBottom: 6 }}>용도별</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {recipeCategories.map(cat => (
+                <button key={cat.key} onClick={() => setRecipeCat(cat.key)} style={{
+                  padding: "6px 12px", borderRadius: 100, fontSize: 12, fontWeight: 700,
+                  border: recipeCat === cat.key ? "1.5px solid var(--text-main)" : "1.5px solid var(--text-dim)",
+                  background: recipeCat === cat.key ? "var(--text-main)" : "var(--bg-card)",
+                  color: recipeCat === cat.key ? "var(--bg-main)" : "var(--text-sub)",
+                  cursor: "pointer", fontFamily: "inherit",
+                }}>
+                  {cat.emoji} {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 필터 결과 수 */}
+        <div style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 12 }}>
+          {filteredRecipes.length}개 레시피
         </div>
 
         {/* 레시피 카드 */}
