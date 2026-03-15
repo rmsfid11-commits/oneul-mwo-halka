@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#F5F4F0"/>
-  <text x="256" y="330" font-size="280" text-anchor="middle" dominant-baseline="middle">✨</text>
+  <rect width="512" height="512" rx="100" fill="#45413C"/>
+  <text x="256" y="290" font-size="180" font-weight="900" text-anchor="middle" fill="#F0ECE3" font-family="sans-serif">뭐</text>
+  <text x="256" y="420" font-size="100" font-weight="700" text-anchor="middle" fill="#A09890" font-family="sans-serif">하지?</text>
 </svg>
