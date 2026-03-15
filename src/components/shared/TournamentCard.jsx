@@ -67,11 +67,12 @@ export default function TournamentCard({
   onPick, onBack, backLabel = "← 그만하기",
   renderInfo, // (item) => JSX — 카드 안에 표시할 내용
 }) {
+  if (!bracket || bracket.length < 2) return null;
   const pair = bracket.slice(matchIdx, matchIdx + 2);
-  const total = bracket.length / 2;
+  const total = Math.max(1, Math.floor(bracket.length / 2));
   const current = Math.floor(matchIdx / 2) + 1;
 
-  if (pair.length < 2) return null;
+  if (!pair || pair.length < 2 || !pair[0] || !pair[1]) return null;
 
   return (
     <div className="tournament-screen fade-in">

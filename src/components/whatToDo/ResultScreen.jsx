@@ -50,8 +50,8 @@ export default function ResultScreen({
       {/* 패턴 학습 배지 */}
       {learnedVibes.length >= 2 && (
         <div style={{
-          background:"#F5F3EE", borderRadius:14, padding:"10px 14px",
-          marginBottom:12, fontSize:12, color:"#666", lineHeight:1.6
+          background:"var(--bg-card)", borderRadius:14, padding:"10px 14px",
+          marginBottom:12, fontSize:12, color:"var(--text-sub)", lineHeight:1.6
         }}>
           📊 <b>너의 취향 패턴</b> — {learnedVibes.slice(0,3).map(v => VIBE_LABEL[v] || v).join(", ")} 을 자주 선택했어
         </div>
@@ -103,7 +103,7 @@ export default function ResultScreen({
 
           <div style={{ marginBottom:20 }}>
             <div style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.5px" }}>오늘 이렇게 보내볼까?</div>
-            <div style={{ fontSize:13, color:"#999", marginTop:6 }}>
+            <div style={{ fontSize:13, color:"var(--text-sub)", marginTop:6 }}>
               {champion.emoji} {champion.name} 취향 기반으로 코스 {courses.length}개 짜봤어
             </div>
           </div>
@@ -114,15 +114,14 @@ export default function ResultScreen({
               setMySchedule(course.activities);
               setFeedbackOpen(false); setFeedbackSent(false);
             }} style={{
-              background: i === 0 ? "#191919" : "#fff",
-              color: i === 0 ? "#fff" : "#191919",
+              background: i === 0 ? "var(--bg-card-hover)" : "var(--bg-card)",
+              color: "var(--text-main)",
               borderRadius:20, padding:"20px 18px", marginBottom:12,
               cursor:"pointer", transition:"all 0.2s",
-              boxShadow: i === 0 ? "0 4px 20px rgba(0,0,0,0.15)" : "0 1px 4px rgba(0,0,0,0.06)",
-              border: i === 0 ? "none" : "1.5px solid #ECEAE4"
+              border: i === 0 ? "1.5px solid rgba(255,255,255,0.12)" : "1.5px solid var(--text-dim)"
             }}>
               {i === 0 && (
-                <div style={{ fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.5)", marginBottom:8, letterSpacing:1 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:"var(--text-dim)", marginBottom:8, letterSpacing:1 }}>
                   BEST MATCH
                 </div>
               )}
@@ -133,20 +132,19 @@ export default function ResultScreen({
                     <span style={{ fontSize:20 }}>{act.emoji}</span>
                     <span style={{ fontSize:13, fontWeight:600 }}>{act.name}</span>
                     {j < course.activities.length - 1 && (
-                      <span style={{ color: i === 0 ? "rgba(255,255,255,0.3)" : "#ddd", margin:"0 2px" }}>→</span>
+                      <span style={{ color:"var(--text-dim)", margin:"0 2px" }}>→</span>
                     )}
                   </div>
                 ))}
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <div style={{ fontSize:12, color: i === 0 ? "rgba(255,255,255,0.6)" : "#aaa", lineHeight:1.5 }}>
+                <div style={{ fontSize:12, color:"var(--text-sub)", lineHeight:1.5 }}>
                   {course.reason}
                 </div>
                 <div style={{
                   fontSize:11, fontWeight:700, flexShrink:0, marginLeft:12,
                   padding:"4px 10px", borderRadius:100,
-                  background: i === 0 ? "rgba(255,255,255,0.15)" : "#F0EDE8",
-                  color: i === 0 ? "rgba(255,255,255,0.8)" : "#888"
+                  background:"var(--bg-main)", color:"var(--text-sub)"
                 }}>
                   {course.totalMinutes}분
                 </div>
@@ -158,9 +156,9 @@ export default function ResultScreen({
           {!showRunnerUps && tournamentHistory.length > 0 && (
             <button onClick={() => setShowRunnerUps(true)} style={{
               width:"100%", padding:"14px", marginTop:4,
-              background:"#FAFAF8", border:"1.5px dashed #D0CEC8",
+              background:"var(--bg-card)", border:"1.5px dashed var(--text-dim)",
               borderRadius:14, fontSize:14, fontWeight:700,
-              color:"#888", cursor:"pointer", fontFamily:"inherit",
+              color:"var(--text-sub)", cursor:"pointer", fontFamily:"inherit",
             }}>
               🔄 이거 말고 다른 것도 볼래?
             </button>
@@ -176,27 +174,26 @@ export default function ResultScreen({
               .slice(0, 4);
             return (
               <div style={{ marginTop:8, animation:"fadeIn 0.3s ease-out" }}>
-                <div style={{ fontSize:13, fontWeight:700, color:"#999", marginBottom:10 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>
                   아까 아쉽게 탈락한 것들
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:10 }}>
                   {losers.map(act => (
                     <div key={act.id} onClick={() => onRebuildCourse(act)} style={{
-                      background:"#fff", borderRadius:16, padding:"18px 14px",
+                      background:"var(--bg-card)", borderRadius:16, padding:"18px 14px",
                       textAlign:"center", cursor:"pointer",
-                      boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
-                      border:"1.5px solid #ECEAE4", transition:"all 0.2s"
+                      border:"1.5px solid var(--text-dim)", transition:"all 0.2s"
                     }}>
                       <div style={{ fontSize:36, marginBottom:8 }}>{act.emoji}</div>
-                      <div style={{ fontSize:14, fontWeight:700, marginBottom:4, color:"#191919" }}>{act.name}</div>
-                      <div style={{ fontSize:11, color:"#aaa" }}>{act.time}분</div>
+                      <div style={{ fontSize:14, fontWeight:700, marginBottom:4, color:"var(--text-main)" }}>{act.name}</div>
+                      <div style={{ fontSize:11, color:"var(--text-sub)" }}>{act.time}분</div>
                     </div>
                   ))}
                 </div>
                 <button onClick={() => setShowRunnerUps(false)} style={{
                   width:"100%", marginTop:10, padding:"10px",
                   background:"transparent", border:"none",
-                  fontSize:12, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+                  fontSize:12, color:"var(--text-sub)", cursor:"pointer", fontFamily:"inherit"
                 }}>닫기</button>
               </div>
             );
@@ -217,18 +214,18 @@ export default function ResultScreen({
             <div style={{
               position:"absolute", width:"100%", height:"100%",
               backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
-              background:"#191919", borderRadius:28, padding:"28px 24px",
+              background:"var(--bg-card)", borderRadius:28, padding:"28px 24px",
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:8
             }}>
               <div style={{fontSize:52}}>{champion.emoji}</div>
-              <div style={{fontSize:22, fontWeight:900, color:"#fff"}}>{champion.name}</div>
+              <div style={{fontSize:22, fontWeight:900, color:"var(--text-main)"}}>{champion.name}</div>
               <span className="champ-badge">{champion.time}분</span>
             </div>
             <div style={{
               position:"absolute", width:"100%", height:"100%",
               backfaceVisibility:"hidden", WebkitBackfaceVisibility:"hidden",
               transform:"rotateY(180deg)",
-              background:"#191919", color:"#fff", borderRadius:28, padding:"28px 24px",
+              background:"var(--bg-card)", color:"var(--text-main)", borderRadius:28, padding:"28px 24px",
               display:"flex", flexDirection:"column", justifyContent:"center", gap:14
             }}>
               <div style={{fontSize:28}}>{champion.emoji}</div>
@@ -244,10 +241,10 @@ export default function ResultScreen({
         <div style={{ marginBottom:20 }}>
           <div style={{ marginBottom:16, cursor:"pointer" }} onClick={() => { setSelectedCourse(null); setMySchedule([]); }}>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <span style={{ fontSize:14, color:"#aaa" }}>←</span>
+              <span style={{ fontSize:14, color:"var(--text-sub)" }}>←</span>
               <div style={{ fontSize:20, fontWeight:900, letterSpacing:"-0.5px" }}>{selectedCourse.title}</div>
             </div>
-            <div style={{ fontSize:13, color:"#999", marginTop:4 }}>{selectedCourse.reason}</div>
+            <div style={{ fontSize:13, color:"var(--text-sub)", marginTop:4 }}>{selectedCourse.reason}</div>
           </div>
 
           {mySchedule.map((act, i) => (
@@ -255,29 +252,29 @@ export default function ResultScreen({
               <div className="schedule-item" style={{ position:"relative" }}>
                 <div style={{
                   width:28, height:28, borderRadius:"50%",
-                  background: i === 0 ? "#191919" : "#F0EDE8",
-                  color: i === 0 ? "#fff" : "#666",
+                  background: i === 0 ? "var(--text-main)" : "var(--bg-main)",
+                  color: i === 0 ? "var(--bg-main)" : "var(--text-sub)",
                   display:"flex", alignItems:"center", justifyContent:"center",
                   fontWeight:800, fontSize:12, flexShrink:0
                 }}>{i + 1}</div>
                 <div className="s-emoji">{act.emoji}</div>
                 <div style={{ flex:1 }}>
                   <div className="s-name" style={{ marginBottom:2 }}>{act.name}</div>
-                  <div style={{ fontSize:11, color:"#bbb" }}>{act.hint}</div>
+                  <div style={{ fontSize:11, color:"var(--text-sub)" }}>{act.hint}</div>
                 </div>
                 <div className="s-time">{act.duration || act.time}분</div>
               </div>
               {i < mySchedule.length - 1 && (
                 <div style={{ display:"flex", justifyContent:"center", padding:"4px 0" }}>
-                  <div style={{ width:1, height:20, background:"#E0DED8" }} />
+                  <div style={{ width:1, height:20, background:"var(--text-dim)" }} />
                 </div>
               )}
             </div>
           ))}
 
           <div style={{
-            textAlign:"center", padding:"12px", fontSize:13, color:"#aaa",
-            background:"#F5F3EE", borderRadius:12
+            textAlign:"center", padding:"12px", fontSize:13, color:"var(--text-sub)",
+            background:"var(--bg-main)", borderRadius:12
           }}>
             총 {mySchedule.reduce((s, a) => s + (a.duration || a.time), 0)}분 코스
           </div>
@@ -286,20 +283,20 @@ export default function ResultScreen({
           {!feedbackOpen && !feedbackSent && (
             <button onClick={() => setFeedbackOpen(true)} style={{
               width:"100%", marginTop:10, padding:"10px", background:"none",
-              border:"1px dashed #ddd", borderRadius:10, fontSize:13,
-              color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+              border:"1px dashed var(--text-dim)", borderRadius:10, fontSize:13,
+              color:"var(--text-sub)", cursor:"pointer", fontFamily:"inherit"
             }}>
               👎 이 코스 별로야
             </button>
           )}
           {feedbackOpen && !feedbackSent && (
-            <div style={{ marginTop:10, background:"#FAFAF8", borderRadius:12, padding:14 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:"#666", marginBottom:10 }}>어디가 별로야?</div>
+            <div style={{ marginTop:10, background:"var(--bg-card)", borderRadius:12, padding:14 }}>
+              <div style={{ fontSize:13, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>어디가 별로야?</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                 {FEEDBACK_REASONS.map(r => (
                   <button key={r.id} onClick={() => sendFeedback(r.id)} style={{
-                    padding:"8px 14px", borderRadius:20, border:"1px solid #E0DED8",
-                    background:"#fff", fontSize:13, cursor:"pointer", fontFamily:"inherit"
+                    padding:"8px 14px", borderRadius:20, border:"1px solid var(--text-dim)",
+                    background:"var(--bg-card-hover)", fontSize:13, cursor:"pointer", fontFamily:"inherit", color:"var(--text-main)"
                   }}>
                     {r.emoji} {r.label}
                   </button>
@@ -307,14 +304,14 @@ export default function ResultScreen({
               </div>
               <button onClick={() => setFeedbackOpen(false)} style={{
                 marginTop:8, background:"none", border:"none", fontSize:12,
-                color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+                color:"var(--text-sub)", cursor:"pointer", fontFamily:"inherit"
               }}>취소</button>
             </div>
           )}
           {feedbackSent && (
             <div style={{
               marginTop:10, textAlign:"center", padding:"12px",
-              background:"#F0FFF0", borderRadius:10, fontSize:13, color:"#4a4"
+              background:"rgba(74,170,74,0.15)", borderRadius:10, fontSize:13, color:"#7BCC9A"
             }}>
               피드백 저장됨! 다음에 개선할게요
             </div>
@@ -326,10 +323,10 @@ export default function ResultScreen({
       <div style={{ padding:"12px 0 24px", marginTop:8 }}>
         {selectedCourse && courses.length > 0 && (
           <button type="button" onClick={() => { setSelectedCourse(null); setMySchedule([]); }} style={{
-            width:"100%", padding:"14px", background:"#fff",
-            border:"1.5px solid #E0DED8", borderRadius:14,
+            width:"100%", padding:"14px", background:"var(--bg-card)",
+            border:"1.5px solid var(--text-dim)", borderRadius:14,
             fontSize:14, fontWeight:700, cursor:"pointer",
-            fontFamily:"inherit", color:"#666", marginBottom:8
+            fontFamily:"inherit", color:"var(--text-sub)", marginBottom:8
           }}>
             ← 다른 코스 보기
           </button>
@@ -345,7 +342,7 @@ export default function ResultScreen({
         <button type="button" onClick={() => { clearHistory(); alert("히스토리 초기화됐어. 다음부터 모든 활동이 다시 나와!"); }} style={{
           width:"100%", marginTop:8, padding:"10px",
           background:"transparent", border:"none",
-          fontSize:12, color:"#bbb", cursor:"pointer", fontFamily:"inherit"
+          fontSize:12, color:"var(--text-sub)", cursor:"pointer", fontFamily:"inherit"
         }}>↺ 히스토리 초기화 (처음부터 다시)</button>
       </div>
     </div>

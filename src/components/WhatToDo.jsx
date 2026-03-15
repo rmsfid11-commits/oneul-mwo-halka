@@ -106,7 +106,10 @@ export default function WhatToDo({ answers, setAnswers, sodaKeys, setSodaKeys, s
 
     setMatched(m);
     const topN = Math.min(bracketSize + 8, m.length);
-    const pool = [...m.slice(0, topN)].sort(() => Math.random() - 0.5).slice(0, bracketSize);
+    let pool = [...m.slice(0, topN)].sort(() => Math.random() - 0.5).slice(0, bracketSize);
+    // 항상 짝수여야 토너먼트가 성립
+    if (pool.length % 2 !== 0) pool = pool.slice(0, pool.length - 1);
+    if (pool.length < 2) { setScreen("setup"); return; }
     setBracket(pool);
     setMatchIdx(0);
     setRoundWinners([]);
