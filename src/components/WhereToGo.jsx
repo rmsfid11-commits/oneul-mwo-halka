@@ -176,7 +176,9 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               }}>← 뒤로</button>
             </div>
             <div style={{ fontSize:14, color:"var(--text-sub)", marginTop:6 }}>
-              {placeContext?.from === "whatToDo" ? `${placeContext.activity?.emoji || "✨"} ${placeContext.activity?.name} 하기 좋은 곳을 찾아줄게` :
+              {placeContext?.from === "whatToDo" && placeContext.activity?.tags?.location?.[0] === "home"
+                ? `${placeContext.activity?.emoji || "✨"} ${placeContext.activity?.name} 전후로 잠깐 나갈 만한 곳을 찾아줄게`
+                : placeContext?.from === "whatToDo" ? `${placeContext.activity?.emoji || "✨"} ${placeContext.activity?.name} 하기 좋은 곳을 찾아줄게` :
                placeContext?.from === "whatToEat" ? `${placeContext.food?.emoji || "🍽️"} ${placeContext.food?.name || "맛집"} 먹으러 갈 곳을 찾아줄게` :
                "몇 가지만 알려주면 딱 맞는 곳 찾아줄게"}
             </div>
@@ -325,7 +327,9 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             }}>
               <span style={{ fontSize:20 }}>{placeContext.from === "whatToDo" ? "✨" : "🍽️"}</span>
               <span>
-                {placeContext.from === "whatToDo"
+                {placeContext.from === "whatToDo" && placeContext.activity?.tags?.location?.[0] === "home"
+                  ? `${placeContext.activity?.name} 전후로 잠깐 들르기 좋은 곳이야`
+                  : placeContext.from === "whatToDo"
                   ? `${placeContext.activity?.name}에 어울리는 장소야`
                   : `${placeContext.food?.name || "맛집"} 먹기 좋은 곳이야`}
               </span>

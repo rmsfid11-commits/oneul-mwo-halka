@@ -46,6 +46,25 @@ const GENRE_PLACE_MAP = {
   cycling:  { names:["한강공원","해안도로","드라이브 코스","공원/하천"], tags:["자전거","라이딩"], types:["nature","outdoor","drive"] },
 };
 
+// 집에서 하는 활동인지 판별
+function isHomeActivity(activity) {
+  if (!activity) return false;
+  // tags.location에 "home"만 있으면 집 활동
+  const loc = activity.tags?.location;
+  if (loc && loc.length === 1 && loc[0] === "home") return true;
+  // 이름 기반 판별
+  const homeKeywords = ["넷플릭스","유튜브","게임","정리","청소","독서","일기","스트레칭","명상","요가","홈트"];
+  if (homeKeywords.some(k => activity.name?.includes(k))) return true;
+  return false;
+}
+
+// 집 활동용 장소 매핑 — "밖에 나간다면 여기"
+const HOME_ACTIVITY_PLACES = {
+  names: ["만화카페/멀티방","찜질방/사우나","24시 찜질방","호캉스","조용한 카페",
+          "편의점 앞 벤치","24시 카페","동네 카페","무인매장/편의점"],
+  tags: ["편안함","오래머물기","실내","조용함"],
+};
+
 // 현재 시간대 구하기
 function getCurrentSlot() {
   const hour = new Date().getHours();
@@ -104,16 +123,27 @@ function scorePlaces(pool, pa, ctx, curSlot) {
 
     // 다른 탭에서 넘어온 경우 context 보너스
     if (ctx?.from === "whatToDo" && ctx.activity) {
-      if (ctx.activity.vibe && p.vibe?.some(v => ctx.activity.vibe.includes(v))) score += 3;
-      // 활동 장르 → 어울리는 장소 강력 보너스/페널티
-      const genreMap = GENRE_PLACE_MAP[ctx.activity.genre];
-      if (genreMap) {
-        const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
-        const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
-        const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
-        if (nameMatch) score += 12;
-        else if (tagMatch || typeMatch) score += 7;
-        else score -= 8; // 장르와 관련 없는 장소 강력 페널티
+      const homeAct = isHomeActivity(ctx.activity);
+
+      if (homeAct) {
+        // 집 활동 → 밖에 나간다면 편한 곳 위주
+        const nameMatch = HOME_ACTIVITY_PLACES.names.some(n => p.name?.includes(n));
+        const tagMatch = HOME_ACTIVITY_PLACES.tags.some(t => p.tags?.includes(t));
+        if (nameMatch) score += 15;
+        else if (tagMatch) score += 8;
+        else score -= 10; // 관련 없는 곳 강력 배제
+      } else {
+        if (ctx.activity.vibe && p.vibe?.some(v => ctx.activity.vibe.includes(v))) score += 3;
+        // 활동 장르 → 어울리는 장소 강력 보너스/페널티
+        const genreMap = GENRE_PLACE_MAP[ctx.activity.genre];
+        if (genreMap) {
+          const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
+          const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
+          const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
+          if (nameMatch) score += 12;
+          else if (tagMatch || typeMatch) score += 7;
+          else score -= 8;
+        }
       }
     }
     if (ctx?.from === "whatToEat") {
@@ -139,7 +169,11 @@ function scorePlaces(pool, pa, ctx, curSlot) {
 function buildReason(pa, ctx, curSlot) {
   const reasons = [];
   if (ctx?.from === "whatToDo") {
-    reasons.push(`${ctx.activity?.emoji || "✨"} ${ctx.activity?.name} 하기 좋은 곳`);
+    if (isHomeActivity(ctx.activity)) {
+      reasons.push(`${ctx.activity?.emoji || "✨"} ${ctx.activity?.name} 전후로 잠깐 들르기 좋은 곳`);
+    } else {
+      reasons.push(`${ctx.activity?.emoji || "✨"} ${ctx.activity?.name} 하기 좋은 곳`);
+    }
   } else if (ctx?.from === "whatToEat") {
     reasons.push(`${ctx.food?.emoji || "🍽️"} ${ctx.food?.name || "맛집"} 먹으러`);
   } else {
@@ -199,15 +233,24 @@ export function buildTournamentBracket(pa, ctx, bracketSize = 16) {
     if (pa?.who && p.withWho?.includes(pa.who)) score += 2;
     if (pa?.budget && p.budget?.includes(pa.budget)) score += 1;
     if (ctx?.from === "whatToDo" && ctx.activity) {
-      if (ctx.activity.vibe) score += p.vibe.filter(v => ctx.activity.vibe.includes(v)).length * 2;
-      const genreMap = GENRE_PLACE_MAP[ctx.activity.genre];
-      if (genreMap) {
-        const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
-        const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
-        const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
-        if (nameMatch) score += 10;
-        else if (tagMatch || typeMatch) score += 6;
-        else score -= 6;
+      const homeAct = isHomeActivity(ctx.activity);
+      if (homeAct) {
+        const nameMatch = HOME_ACTIVITY_PLACES.names.some(n => p.name?.includes(n));
+        const tagMatch = HOME_ACTIVITY_PLACES.tags.some(t => p.tags?.includes(t));
+        if (nameMatch) score += 12;
+        else if (tagMatch) score += 6;
+        else score -= 8;
+      } else {
+        if (ctx.activity.vibe) score += p.vibe.filter(v => ctx.activity.vibe.includes(v)).length * 2;
+        const genreMap = GENRE_PLACE_MAP[ctx.activity.genre];
+        if (genreMap) {
+          const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
+          const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
+          const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
+          if (nameMatch) score += 10;
+          else if (tagMatch || typeMatch) score += 6;
+          else score -= 6;
+        }
       }
     }
     if (ctx?.from === "whatToEat") {
