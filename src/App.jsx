@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import WhatToDo from './components/WhatToDo.jsx';
 import WhatToEat from './components/WhatToEat.jsx';
 import WhereToGo from './components/WhereToGo.jsx';
+import Lifestyle from './components/Lifestyle.jsx';
 import SituationScreen from './components/shared/SituationScreen.jsx';
 
 export default function VibeApp() {
@@ -147,6 +148,10 @@ export default function VibeApp() {
         />
       )}
 
+      {tab === "lifestyle" && (
+        <Lifestyle />
+      )}
+
       {/* ── 하단 탭바 ── */}
       {!hideTabBar && (
         <div style={{
@@ -160,6 +165,7 @@ export default function VibeApp() {
               { key:"whatToDo", label:"뭐 할까" },
               { key:"whatToEat", label:"뭐 먹지" },
               { key:"whereToGo", label:"어디 가지" },
+              { key:"lifestyle", label:"생활" },
             ].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)} style={{
                 flex:1, padding:"14px 0 12px", background:"transparent",
