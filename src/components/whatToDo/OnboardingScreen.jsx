@@ -26,14 +26,14 @@ export default function OnboardingScreen({
   return (
     <div className="screen fade-in" style={{ paddingBottom:32 }}>
       <div style={{ marginBottom:24, paddingTop:8 }}>
-        <div className="step-label">처음 오셨군요 👋</div>
+        <div className="step-label">어 처음이네? 👋</div>
         <div style={{ fontSize:22, fontWeight:900, letterSpacing:"-0.5px", lineHeight:1.3 }}>취향 2가지만 알려줘</div>
-        <div style={{ fontSize:12, color:"var(--text-sub)", marginTop:4 }}>더 정확한 추천을 위해. 나중에 바꿀 수 있어.</div>
+        <div style={{ fontSize:12, color:"var(--text-sub)", marginTop:4 }}>이거 알아야 제대로 추천해주지. 나중에 바꿔도 돼.</div>
       </div>
 
       {/* 좋아하는 느낌 */}
       <div style={{ fontSize:13, fontWeight:800, marginBottom:10, color:"var(--text-main)" }}>
-        좋아하는 느낌 <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(최대 5개)</span>
+        이런 거 좋아해? <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(최대 5개)</span>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:6, marginBottom:24 }}>
         {VIBE_OPTIONS.map(v => {
@@ -57,7 +57,7 @@ export default function OnboardingScreen({
 
       {/* 절대 안 하는 것 */}
       <div style={{ fontSize:13, fontWeight:800, marginBottom:10, color:"var(--text-main)" }}>
-        절대 안 하는 것 <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(추천에서 제외)</span>
+        이건 진짜 싫어 <span style={{color:"var(--text-sub)",fontWeight:500,fontSize:11}}>(추천에서 빼줄게)</span>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:6, marginBottom:24 }}>
         {BLACKLIST_OPTIONS.map(v => {
@@ -80,7 +80,7 @@ export default function OnboardingScreen({
       </div>
 
       <button className="start-btn" onClick={() => onComplete(tempVibes, tempBlacklist)}>
-        {(tempVibes.length + tempBlacklist.length) > 0 ? "완료 → 시작하기" : "그냥 넘어갈게 →"}
+        {(tempVibes.length + tempBlacklist.length) > 0 ? "좋아, 시작하자 →" : "귀찮아, 그냥 넘길래 →"}
       </button>
     </div>
   );

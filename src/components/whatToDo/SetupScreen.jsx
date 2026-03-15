@@ -191,7 +191,7 @@ export default function SetupScreen({
             cursor:"pointer", fontFamily:"inherit"
           }}>⚙ 취향 설정</button>
         </div>
-        <div style={{ fontSize:14, color:"var(--text-sub)", marginTop:6 }}>지금 상태 알려주면 오늘 하루 짜줄게</div>
+        <div style={{ fontSize:14, color:"var(--text-sub)", marginTop:6 }}>뭐 할지 모르겠지? 그래서 내가 있는 거야</div>
       </div>
 
       {QUESTIONS.map((q, qi) => {
@@ -265,7 +265,7 @@ export default function SetupScreen({
       )}
       {canStart && (
         <>
-          <div style={{ fontSize:13, fontWeight:700, color:"var(--text-sub)", textAlign:"center", marginTop:20, marginBottom:10 }}>취향 찾기</div>
+          <div style={{ fontSize:13, fontWeight:700, color:"var(--text-sub)", textAlign:"center", marginTop:20, marginBottom:10 }}>골라봐, 안 고르면 내가 고른다?</div>
           <div style={{ display:"flex", gap:8 }}>
             {[
               { size:4, label:"빠르게", sub:"2번이면 끝", emoji:"🚀" },
@@ -303,7 +303,7 @@ export default function SetupScreen({
           fontSize:13, fontWeight:600,
           color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
         }}>
-          ✦ 도전 모드 — 안 해본 것들로만
+          ✦ 도전 모드 — 맨날 같은 거만 하지 말고
         </button>
       )}
     </div>

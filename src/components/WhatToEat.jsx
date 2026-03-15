@@ -122,6 +122,9 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
   const [foodPicking, setFoodPicking] = useState(null);
   const [foodTourneyHistory, setFoodTourneyHistory] = useState([]);
   const [showFoodRunnerUps, setShowFoodRunnerUps] = useState(false);
+  // 다시 하기 리롤 제한 (최대 3번)
+  const [rerollCount, setRerollCount] = useState(0);
+  const MAX_REROLL = 3;
   // 후식 추천 애니메이션 상태
   const [afterDots, setAfterDots] = useState([false,false,false]);
   const [afterPhase, setAfterPhase] = useState("idle"); // idle | dots | show
@@ -302,7 +305,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           </div>
         </div>
 
-        <button onClick={() => { setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFoodScreen("wcQuestions"); }} style={{
+        <button onClick={() => { setRerollCount(0); setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFoodScreen("wcQuestions"); }} style={{
           width:"100%", padding:"20px", background:"var(--text-main)", color:"var(--bg-main)",
           border:"none", borderRadius:16, fontSize:16, fontWeight:800,
           cursor:"pointer", fontFamily:"inherit", marginBottom:12
@@ -310,7 +313,7 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           🥊 내 취향 음식 찾기
         </button>
 
-        <button onClick={() => { setRouletteCat("all"); setRouletteFood(null); setSpinDisplay(null); setFoodScreen("roulette"); }} style={{
+        <button onClick={() => { setRerollCount(0); setRouletteCat("all"); setRouletteFood(null); setSpinDisplay(null); setFoodScreen("roulette"); }} style={{
           width:"100%", padding:"20px", background:"var(--bg-card)", color:"var(--text-main)",
           border:"1.5px solid var(--text-dim)", borderRadius:16, fontSize:16, fontWeight:800,
           cursor:"pointer", fontFamily:"inherit"
@@ -631,14 +634,32 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           cursor:"pointer", fontFamily:"inherit", color:"#fff"
         }}>📍 이거 어디서 먹지?</button>
 
-        <button onClick={() => { setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFlippedFoods(new Set()); setFoodScreen("wcQuestions"); }} style={{
-          width:"100%", padding:"15px", background:"var(--text-main)", color:"var(--bg-main)",
-          border:"none", borderRadius:14, fontSize:15, fontWeight:700,
-          cursor:"pointer", fontFamily:"inherit", marginBottom:8
-        }}>
-          다시 하기
-        </button>
-        <button onClick={() => setFoodScreen("home")} style={{
+        {rerollCount < MAX_REROLL ? (
+          <button onClick={() => {
+            setRerollCount(c => c + 1);
+            setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFlippedFoods(new Set()); setFoodScreen("wcQuestions");
+          }} style={{
+            width:"100%", padding:"15px", background:"var(--text-main)", color:"var(--bg-main)",
+            border:"none", borderRadius:14, fontSize:15, fontWeight:700,
+            cursor:"pointer", fontFamily:"inherit", marginBottom:8
+          }}>
+            🔄 다시 추천 ({MAX_REROLL - rerollCount}번 남음)
+          </button>
+        ) : (
+          <div style={{ marginBottom:8 }}>
+            <button disabled style={{
+              width:"100%", padding:"15px", background:"var(--text-dim)", color:"var(--bg-card)",
+              border:"none", borderRadius:14, fontSize:15, fontWeight:700,
+              cursor:"not-allowed", fontFamily:"inherit", opacity:0.6, marginBottom:6
+            }}>
+              🔄 다시 추천 (0번 남음)
+            </button>
+            <div style={{ fontSize:13, fontWeight:700, color:"var(--accent, #f59e0b)", textAlign:"center" }}>
+              3번 다 썼어! 이 중에서 골라봐 😋
+            </div>
+          </div>
+        )}
+        <button onClick={() => { setRerollCount(0); setFoodScreen("home"); }} style={{
           width:"100%", padding:"12px", background:"transparent", border:"none",
           fontSize:13, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
         }}>

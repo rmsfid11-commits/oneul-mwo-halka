@@ -206,14 +206,55 @@ export default function WhatToDo({ answers, setAnswers, sodaKeys, setSodaKeys, s
     setScreen("onboarding");
   }
 
+  // ── 난이도 자동 판별 ──
+  function getDifficulty(act) {
+    const energy = act.tags?.energy || [];
+    const cost = act.tags?.cost || [];
+    const time = act.time || 0;
+    if (energy.includes("high") || time > 120 || cost.includes("상관없어"))
+      return { label: "💪 도전적", color: "#fee2e2", text: "#dc2626" };
+    if (energy.includes("mid"))
+      return { label: "✌️ 적당", color: "#fef9c3", text: "#ca8a04" };
+    if (energy.includes("low") && cost.includes("무료"))
+      return { label: "👌 쉬움", color: "#dcfce7", text: "#16a34a" };
+    return null;
+  }
+
+  // ── 재미 타입 자동 판별 ──
+  function getFunType(act) {
+    if (act.rarity === "weird") return { label: "🔥 이색", color: "#fce7f3", text: "#db2777" };
+    if (act.rarity === "uncommon") return { label: "✨ 특별", color: "#ede9fe", text: "#7c3aed" };
+    return null;
+  }
+
   // ── 토너먼트 카드 렌더 ──
-  const renderActivityCard = (act) => (
-    <>
-      <div className="card-emoji" style={{ position:"relative", zIndex:4 }}>{act.emoji}</div>
-      <div className="card-name" style={{ position:"relative", zIndex:4 }}>{act.name}</div>
-      <div className="card-time" style={{ position:"relative", zIndex:4 }}>{act.time}분</div>
-    </>
-  );
+  const renderActivityCard = (act) => {
+    const diff = getDifficulty(act);
+    const fun = getFunType(act);
+    const pillStyle = (bg, fg) => ({
+      display: "inline-block",
+      padding: "1px 7px",
+      borderRadius: 99,
+      fontSize: 10,
+      fontWeight: 600,
+      background: bg,
+      color: fg,
+      lineHeight: "18px",
+    });
+    return (
+      <>
+        <div className="card-emoji" style={{ position:"relative", zIndex:4 }}>{act.emoji}</div>
+        <div className="card-name" style={{ position:"relative", zIndex:4 }}>{act.name}</div>
+        <div className="card-time" style={{ position:"relative", zIndex:4 }}>{act.time}분</div>
+        {(diff || fun) && (
+          <div style={{ display:"flex", gap:4, justifyContent:"center", flexWrap:"wrap", position:"relative", zIndex:4, marginTop:2 }}>
+            {diff && <span style={pillStyle(diff.color, diff.text)}>{diff.label}</span>}
+            {fun && <span style={pillStyle(fun.color, fun.text)}>{fun.label}</span>}
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (<>
     {/* ── 온보딩 ── */}

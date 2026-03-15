@@ -4,25 +4,25 @@ const SITUATIONS = [
   {
     id: "alone",
     label: "혼자야",
-    sub: "쉬는 날 뭐하지?",
+    sub: "집에서 뒹굴? 나가볼까?",
     color: "#7B9ACC",
   },
   {
     id: "date",
     label: "데이트야",
-    sub: "오늘 어디 갈까?",
+    sub: "설레는 데이트 코스 짜줄게",
     color: "#CC7B8B",
   },
   {
     id: "friend",
     label: "친구랑",
-    sub: "같이 뭐하지?",
+    sub: "놀 거 없다고? 내가 찾아줄게",
     color: "#7BCC9A",
   },
   {
     id: "random",
     label: "몰라 일단",
-    sub: "아무거나 골라줘요",
+    sub: "생각하기 귀찮지? 맡겨",
     color: "#CCAA7B",
   },
 ];
@@ -31,10 +31,10 @@ export default function SituationScreen({ onSelect }) {
   return (
     <div className="screen fade-in" style={{ paddingTop: 48 }}>
       <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: "-0.8px", marginBottom: 6 }}>
-        오늘 누구랑 있어요?
+        오늘 누구랑 있어?
       </div>
       <div style={{ fontSize: 14, color: "var(--text-sub)", marginBottom: 32, lineHeight: 1.5 }}>
-        기분만 알려주면, 나머지는 알아서 짜줄게요
+        골라봐, 나머지는 내가 알아서 할게
       </div>
 
       <div className="stagger-in" style={{ display: "flex", flexDirection: "column", gap: 12 }}>

@@ -108,9 +108,9 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
       {placeScreen === "home" && (
         <div className="screen fade-in" style={{ paddingTop:32 }}>
           <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>어디 가지? 📍</div>
-          <div style={{ fontSize:14, color:"var(--text-sub)", marginBottom:28 }}>지금 기분에 맞는 장소를 찾아줄게</div>
+          <div style={{ fontSize:14, color:"var(--text-sub)", marginBottom:28 }}>나가고 싶은데 어딜 갈지 모르겠지? 내가 찾아줄게</div>
 
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10 }}>빠른 추천</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10 }}>지금 기분이 어때?</div>
           <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
             {[
               { id:"chill", emoji:"😌", label:"조용히 쉬고 싶어" },
@@ -132,7 +132,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             ))}
           </div>
 
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10 }}>내 취향 장소 찾기</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10 }}>진지하게 고를래?</div>
           <div style={{ display:"flex", gap:8, marginBottom:16 }}>
             {[
               { size:4, label:"빠르게", sub:"2번이면 끝", emoji:"🚀" },
@@ -158,7 +158,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             fontSize:15, fontWeight:700, color:"var(--text-sub)",
             cursor:"pointer", fontFamily:"inherit"
           }}>
-            🎯 세부 설정하고 추천받기
+            🎯 좀 더 구체적으로 알려줄게
           </button>
         </div>
       )}
@@ -180,7 +180,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                 ? `${placeContext.activity?.emoji || "✨"} ${placeContext.activity?.name} 전후로 잠깐 나갈 만한 곳을 찾아줄게`
                 : placeContext?.from === "whatToDo" ? `${placeContext.activity?.emoji || "✨"} ${placeContext.activity?.name} 하기 좋은 곳을 찾아줄게` :
                placeContext?.from === "whatToEat" ? `${placeContext.food?.emoji || "🍽️"} ${placeContext.food?.name || "맛집"} 먹으러 갈 곳을 찾아줄게` :
-               "몇 가지만 알려주면 딱 맞는 곳 찾아줄게"}
+               "몇 개만 답해봐, 딱 맞는 데 찾아줄게"}
             </div>
           </div>
 
@@ -190,10 +190,10 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               marginBottom:16, fontSize:13, color:"var(--text-main)", lineHeight:1.6,
               border:"1px solid rgba(123,154,204,0.3)"
             }}>
-              <div style={{ fontWeight:700, marginBottom:4 }}>🏠 집에 있고 싶다고 했죠?</div>
+              <div style={{ fontWeight:700, marginBottom:4 }}>🏠 집에 있고 싶다고?</div>
               <div style={{ color:"var(--text-sub)", fontSize:12 }}>
-                집에만 있으면 답답하니까, 잠깐 나갔다 오는 건 어때요?
-                <br/>가까운 곳 위주로 추천해줄게요.
+                하루종일 집에만 있으면 답답해지잖아. 잠깐만 나갔다 와.
+                <br/>가까운 데 위주로 골라줄게.
               </div>
             </div>
           )}
@@ -206,7 +206,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             }}>
               <span>
                 {placeContext.from === "whatToDo" ? "✨ 뭐할까에서 연결됨" : "🍽️ 뭐먹지에서 연결됨"}
-                {" — 답변이 자동으로 채워졌어"}
+                {" — 알아서 채워놨어"}
               </span>
               <button onClick={() => { setPlaceContext(null); setPlaceAnswers({ who:null, inOut:null, budget:null, mood:null }); }} style={{
                 background:"none", border:"none", fontSize:11, color:"var(--text-dim)", cursor:"pointer", fontFamily:"inherit"
@@ -215,7 +215,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           )}
 
           {[
-            { id:"who", label:"누구랑 갈 거야?", options:[
+            { id:"who", label:"누구랑 가?", options:[
               { value:"alone", label:"🙋 혼자" },
               { value:"partner", label:"💑 연인" },
               { value:"friend", label:"👯 친구" },
@@ -226,12 +226,12 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               { value:"outdoor", label:"🌳 밖으로 나갈래" },
               { value:"both", label:"🤷 상관없어" },
             ]},
-            { id:"budget", label:"예산은?", options:[
+            { id:"budget", label:"돈은 얼마나 쓸 거야?", options:[
               { value:"low", label:"🆓 가볍게" },
               { value:"mid", label:"💸 적당히" },
               { value:"high", label:"💳 넉넉하게" },
             ]},
-            { id:"mood", label:"어떤 느낌이 좋아?", options:[
+            { id:"mood", label:"오늘 어떤 느낌이야?", options:[
               { value:"chill", label:"😌 조용히 쉬고 싶어" },
               { value:"active", label:"⚡ 활동적으로 놀래" },
               { value:"romantic", label:"💕 감성 충전" },
@@ -257,11 +257,11 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             disabled={!placeAnswers.who || !placeAnswers.mood}
             onClick={() => doPlaceRecommend(placeAnswers, placeContext)}
           >
-            {placeAnswers.who && placeAnswers.mood ? "장소 추천받기 →" : "누구랑, 기분만 알려줘"}
+            {placeAnswers.who && placeAnswers.mood ? "좋아, 찾아볼게 →" : "누구랑 가는지, 기분만 알려줘"}
           </button>
           {placeAnswers.who && placeAnswers.mood && (
             <>
-              <div style={{ fontSize:12, fontWeight:700, color:"var(--text-sub)", textAlign:"center", marginTop:16, marginBottom:8 }}>취향 장소 찾기</div>
+              <div style={{ fontSize:12, fontWeight:700, color:"var(--text-sub)", textAlign:"center", marginTop:16, marginBottom:8 }}>직접 골라볼래?</div>
               <div style={{ display:"flex", gap:8 }}>
                 {[
                   { size:4, label:"빠르게", sub:"2번", emoji:"🚀" },
@@ -315,7 +315,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             <button onClick={() => setPlaceScreen(placeAnswers.who ? "setup" : "home")} style={{
               background:"none", border:"none", fontSize:20, cursor:"pointer", padding:4, color:"var(--text-main)"
             }}>←</button>
-            <div style={{ fontSize:20, fontWeight:800 }}>추천 장소</div>
+            <div style={{ fontSize:20, fontWeight:800 }}>여기 가봐</div>
           </div>
 
           {/* context 안내 — 연결 이유 강조 */}
@@ -335,10 +335,10 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               </div>
               <div style={{ fontSize:13, color:"var(--text-sub)", lineHeight:1.6 }}>
                 {placeContext.from === "whatToDo" && placeContext.activity?.tags?.location?.[0] === "home"
-                  ? "집에서 하는 활동이니까, 전후로 잠깐 나갔다 올 만한 곳을 찾아봤어."
+                  ? "집에서 하는 거니까, 전후로 잠깐 나갈 만한 데 찾아봤어."
                   : placeContext.from === "whatToDo"
-                  ? "이 활동에 어울리는 장소를 찾아봤어."
-                  : "이거 먹으러 가기 좋은 곳을 찾아봤어."}
+                  ? "이거 하기 딱 좋은 데 찾아봤어."
+                  : "여기서 먹으면 맛있을 걸?"}
               </div>
             </div>
           )}
@@ -348,7 +348,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
             background:"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
             borderRadius:20, padding:"28px 22px", color:"#fff", marginBottom:16
           }}>
-            <div style={{ fontSize:12, opacity:0.7, marginBottom:placeResult.connectionReason ? 6 : 8 }}>오늘의 추천 — {placeResult.reason}</div>
+            <div style={{ fontSize:12, opacity:0.7, marginBottom:placeResult.connectionReason ? 6 : 8 }}>내가 찾은 곳 — {placeResult.reason}</div>
             {placeResult.connectionReason && (
               <div style={{
                 fontSize:13, fontWeight:600, lineHeight:1.6, marginBottom:10,
@@ -397,7 +397,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           {/* 대안 */}
           {placeResult.alternatives.length > 0 && (
             <>
-              <div style={{ fontSize:14, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>이런 곳도 있어요</div>
+              <div style={{ fontSize:14, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>이런 데도 괜찮아</div>
               <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
                 {placeResult.alternatives.map(p => (
                   <div key={p.id} style={{
@@ -441,12 +441,12 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               flex:1, padding:"14px", borderRadius:12, border:"none",
               background:"var(--text-main)", fontSize:14, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit", color:"var(--bg-main)"
-            }}>🔄 다시 추천</button>
+            }}>🔄 다른 데 없어?</button>
             <button onClick={() => { setPlaceScreen("setup"); }} style={{
               flex:1, padding:"14px", borderRadius:12, border:"1px solid var(--text-dim)",
               background:"var(--bg-card)", fontSize:14, fontWeight:700,
               cursor:"pointer", fontFamily:"inherit", color:"var(--text-main)"
-            }}>⚙ 다시 설정</button>
+            }}>⚙ 다시 골라볼래</button>
           </div>
           <button onClick={() => { setPlaceScreen("home"); setPlaceContext(null); setPlaceAnswers({ who:null, inOut:null, budget:null, mood:null }); }} style={{
             width:"100%", padding:"12px", background:"transparent", border:"none",
