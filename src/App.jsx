@@ -78,7 +78,7 @@ export default function VibeApp() {
   // ── 스플래시 (0.8초) ──
   useEffect(() => {
     if (appPhase === "splash") {
-      const t = setTimeout(() => setAppPhase("situation"), 800);
+      const t = setTimeout(() => setAppPhase("situation"), 1200);
       return () => clearTimeout(t);
     }
   }, [appPhase]);
