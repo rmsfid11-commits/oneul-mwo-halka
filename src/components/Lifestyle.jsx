@@ -67,8 +67,9 @@ export default function Lifestyle() {
   // ── 공통 스타일 ──
   const cardStyle = {
     background: "var(--bg-card)", borderRadius: 16, padding: "16px 18px",
-    cursor: "pointer", border: "1.5px solid var(--text-dim)",
+    cursor: "pointer", border: "1.5px solid rgba(255,255,255,0.12)",
     transition: "transform 0.15s",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
   };
 
   const backBtn = (target = "home") => (
@@ -156,10 +157,10 @@ export default function Lifestyle() {
               }}>
                 <span style={{ fontSize: 32 }}>{cat.emoji}</span>
                 <div>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: "var(--text-main)" }}>{cat.label}</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#fff" }}>{cat.label}</div>
                   <div style={{ fontSize: 12, color: "var(--text-sub)", marginTop: 2 }}>{cat.sub}</div>
                 </div>
-                <span style={{ marginLeft: "auto", fontSize: 16, color: "var(--text-dim)" }}>→</span>
+                <span style={{ marginLeft: "auto", fontSize: 16, color: "var(--text-sub)" }}>→</span>
               </div>
             ))}
           </div>
@@ -310,7 +311,7 @@ export default function Lifestyle() {
             {openRecipe.ingredients.map((ing, i) => (
               <span key={i} style={{
                 padding: "6px 12px", borderRadius: 10,
-                background: "var(--bg-main)", fontSize: 13, color: "var(--text-sub)",
+                background: "var(--bg-main)", fontSize: 13, color: "#fff",
                 fontWeight: 600,
               }}>{ing}</span>
             ))}
@@ -324,12 +325,10 @@ export default function Lifestyle() {
             {openRecipe.steps.map((step, i) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                 <span style={{
-                  minWidth: 24, height: 24, borderRadius: "50%",
-                  background: "var(--text-main)", color: "var(--bg-main)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 12, fontWeight: 800, flexShrink: 0,
-                }}>{i + 1}</span>
-                <span style={{ fontSize: 14, color: "var(--text-sub)", lineHeight: 1.6, paddingTop: 2 }}>{step}</span>
+                  minWidth: 20, fontSize: 14, fontWeight: 800, flexShrink: 0,
+                  color: "#fff", paddingTop: 1,
+                }}>{i + 1}.</span>
+                <span style={{ fontSize: 14, color: "#fff", lineHeight: 1.6, paddingTop: 1, fontWeight: 500 }}>{step}</span>
               </div>
             ))}
           </div>
@@ -384,17 +383,17 @@ export default function Lifestyle() {
               }}>
                 <span style={{ fontSize: 28 }}>{tip.emoji}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{tip.title}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{tip.title}</div>
                   <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
                     {tip.tags.map(tag => (
                       <span key={tag} style={{
                         padding: "2px 7px", borderRadius: 99, fontSize: 10,
-                        fontWeight: 600, background: "var(--bg-main)", color: "var(--text-dim)",
+                        fontWeight: 600, background: "rgba(255,255,255,0.08)", color: "var(--text-sub)",
                       }}>#{tag}</span>
                     ))}
                   </div>
                 </div>
-                <span style={{ fontSize: 16, color: "var(--text-dim)" }}>→</span>
+                <span style={{ fontSize: 16, color: "var(--text-sub)" }}>→</span>
               </div>
             ))}
           </div>
@@ -408,10 +407,10 @@ export default function Lifestyle() {
           <div style={{ fontSize: 56, marginBottom: 8 }}>{openTip.emoji}</div>
           <div style={{ fontSize: 22, fontWeight: 900, color: "var(--text-main)" }}>{openTip.title}</div>
         </div>
-        <div style={{ ...cardStyle, cursor: "default", marginBottom: 16 }}>
+        <div style={{ ...cardStyle, cursor: "default", marginBottom: 16, border: "1.5px solid rgba(255,255,255,0.15)", background: "var(--bg-card-hover)" }}>
           <div style={{
-            fontSize: 14, color: "var(--text-sub)", lineHeight: 1.8,
-            whiteSpace: "pre-line",
+            fontSize: 15, color: "#fff", lineHeight: 1.9,
+            whiteSpace: "pre-line", fontWeight: 500,
           }}>
             {openTip.content}
           </div>

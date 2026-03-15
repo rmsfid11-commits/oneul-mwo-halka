@@ -108,7 +108,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
       {placeScreen === "home" && (
         <div className="screen fade-in" style={{ paddingTop:32 }}>
           <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.5px", marginBottom:8 }}>어디 가지? 📍</div>
-          <div style={{ fontSize:14, color:"var(--text-sub)", marginBottom:28 }}>나가고 싶은데 어딜 갈지 모르겠지? 내가 찾아줄게</div>
+          <div style={{ fontSize:14, color:"var(--text-main)", opacity:0.75, marginBottom:28 }}>나가고 싶은데 어딜 갈지 모르겠지? 내가 찾아줄게</div>
 
           <div style={{ fontSize:11, fontWeight:700, color:"var(--text-sub)", letterSpacing:1.5, marginBottom:10 }}>지금 기분이 어때?</div>
           <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
@@ -119,15 +119,15 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               { id:"random", emoji:"🎲", label:"아무데나 골라줘" },
             ].map(m => (
               <button key={m.id} onClick={() => doPlaceRecommend({ mood:m.id }, null)} style={{
-                background:"var(--bg-card)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:"20px 18px",
+                background:"var(--bg-card)", border:"1.5px solid rgba(255,255,255,0.12)", borderRadius:16, padding:"20px 18px",
                 display:"flex", alignItems:"center", gap:14, cursor:"pointer",
-                fontFamily:"inherit",
+                fontFamily:"inherit", boxShadow:"0 2px 8px rgba(0,0,0,0.15)",
                 textAlign:"left", transition:"transform 0.15s"
               }} onPointerDown={e => e.currentTarget.style.transform="scale(0.97)"}
                  onPointerUp={e => e.currentTarget.style.transform="scale(1)"}
                  onPointerLeave={e => e.currentTarget.style.transform="scale(1)"}>
                 <div style={{ fontSize:28 }}>{m.emoji}</div>
-                <div style={{ fontSize:16, fontWeight:700, color:"var(--text-main)" }}>{m.label}</div>
+                <div style={{ fontSize:16, fontWeight:700, color:"#fff" }}>{m.label}</div>
               </button>
             ))}
           </div>

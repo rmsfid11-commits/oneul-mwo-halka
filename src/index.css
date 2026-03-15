@@ -362,13 +362,14 @@ body {
   border-radius: 20px;
   padding: 20px;
   margin-bottom: 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .q-label {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   margin-bottom: 14px;
-  color: var(--text-main);
+  color: #fff;
 }
 
 /* ─── 옵션 ─── */
@@ -384,7 +385,7 @@ body {
   justify-content: space-between;
   padding: 13px 16px;
   border-radius: 14px;
-  border: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
   background: var(--bg-main);
   cursor: pointer;
   transition: all 0.18s;
@@ -394,11 +395,12 @@ body {
 
 .opt-btn.selected {
   background: var(--text-main);
+  border-color: var(--text-main);
 }
 
 .opt-btn .opt-label {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-main);
 }
 
