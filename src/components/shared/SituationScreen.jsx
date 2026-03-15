@@ -30,7 +30,6 @@ const SITUATIONS = [
 export default function SituationScreen({ onSelect }) {
   return (
     <div className="screen fade-in" style={{ paddingTop: 48 }}>
-      <div className="step-label">STEP 01</div>
       <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: "-0.8px", marginBottom: 6 }}>
         오늘 누구랑 있어요?
       </div>

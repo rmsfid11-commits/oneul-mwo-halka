@@ -1,5 +1,5 @@
 // 서비스워커 - PWA 설치용 (오프라인 캐시는 최소한만)
-const CACHE_NAME = "oneul-v4";
+const CACHE_NAME = "oneul-v5";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
