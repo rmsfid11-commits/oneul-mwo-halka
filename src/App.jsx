@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import WhatToDo from './components/WhatToDo.jsx';
 import WhatToEat from './components/WhatToEat.jsx';
 import WhereToGo from './components/WhereToGo.jsx';
@@ -6,7 +6,7 @@ import SituationScreen from './components/shared/SituationScreen.jsx';
 
 export default function VibeApp() {
   // ── 앱 진입 상태 ──
-  const [appPhase, setAppPhase] = useState("situation"); // situation | main
+  const [appPhase, setAppPhase] = useState("splash"); // splash | situation | main
   const [situation, setSituation] = useState(null); // alone | date | friend | random
 
   // ── 공유 상태 ──
@@ -74,6 +74,32 @@ export default function VibeApp() {
     random: "#CCAA7B",
   };
   const accent = accentColors[situation] || accentColors.random;
+
+  // ── 스플래시 (0.8초) ──
+  useEffect(() => {
+    if (appPhase === "splash") {
+      const t = setTimeout(() => setAppPhase("situation"), 800);
+      return () => clearTimeout(t);
+    }
+  }, [appPhase]);
+
+  if (appPhase === "splash") {
+    return (
+      <div style={{
+        position:"fixed", inset:0, background:"var(--bg-main)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        zIndex:999,
+      }}>
+        <div style={{
+          fontSize:28, fontWeight:900, letterSpacing:"-1px",
+          color:"var(--text-main)",
+          animation:"fadeIn 0.3s ease-out",
+        }}>
+          오늘 뭐하지?
+        </div>
+      </div>
+    );
+  }
 
   // ── 상황 선택 ──
   if (appPhase === "situation") {
