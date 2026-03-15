@@ -3,6 +3,83 @@ import { recommendPlace, buildTournamentBracket } from '../features/whereToGo/en
 import TournamentCard from './shared/TournamentCard.jsx';
 import { SODA_COLORS } from './whatToDo/constants.js';
 
+// 장소 이름 → 실제 지도 검색어 매핑
+function getMapQuery(name) {
+  const map = {
+    "조용한 카페": "조용한 카페",
+    "분위기 카페": "분위기 좋은 카페",
+    "작업하기 좋은 카페": "콘센트 카페",
+    "디저트 카페": "디저트 카페",
+    "루프탑 카페": "루프탑 카페",
+    "브런치 카페": "브런치 카페",
+    "동네 카페": "내 근처 카페",
+    "테이크아웃 커피": "내 근처 카페",
+    "애견동반 카페": "애견동반 카페",
+    "대형 프랜차이즈 카페": "스타벅스",
+    "공원/하천": "내 근처 공원",
+    "해변/강변": "근처 해변",
+    "수목원/식물원": "수목원",
+    "짧게 걷기 좋은 동네": "내 근처 산책로",
+    "야경 스팟": "야경 명소",
+    "전망대/타워": "전망대",
+    "한강공원": "한강공원",
+    "호수공원": "내 근처 호수공원",
+    "둘레길/산책로": "내 근처 둘레길",
+    "드라이브 코스": "드라이브 코스",
+    "야간 드라이브": "야경 드라이브",
+    "드라이브스루": "드라이브스루",
+    "해안도로": "해안도로 드라이브",
+    "서점/독서카페": "독서카페",
+    "독립서점": "독립서점",
+    "대형서점": "교보문고",
+    "도서관": "내 근처 도서관",
+    "전시회/갤러리": "전시회",
+    "영화관": "내 근처 영화관",
+    "박물관/과학관": "박물관",
+    "공연/뮤지컬": "공연 뮤지컬",
+    "만화카페/멀티방": "만화카페",
+    "복합문화공간": "복합문화공간",
+    "백화점": "내 근처 백화점",
+    "쇼핑몰/아울렛": "내 근처 쇼핑몰",
+    "빈티지/플리마켓": "플리마켓",
+    "대형마트": "내 근처 대형마트",
+    "다이소/문구점": "내 근처 다이소",
+    "올리브영/드럭스토어": "내 근처 올리브영",
+    "전통시장": "내 근처 전통시장",
+    "편집샵/셀렉트샵": "편집샵",
+    "맛집 탐방": "맛집",
+    "포장마차/야시장": "야시장",
+    "바/펍": "내 근처 펍",
+    "와인바/칵테일바": "와인바",
+    "편의점 앞 벤치": "내 근처 편의점",
+    "고깃집": "내 근처 고기 맛집",
+    "회전초밥/혼밥집": "내 근처 혼밥 맛집",
+    "푸드코트": "내 근처 푸드코트",
+    "한강 치맥 스팟": "한강공원 치킨",
+    "오션뷰 맛집": "오션뷰 맛집",
+    "24시 식당": "내 근처 24시 식당",
+    "찜닭골목/먹자골목": "먹자골목",
+    "베이커리/빵집": "내 근처 빵집",
+    "분식집": "내 근처 분식집",
+    "카페거리": "카페거리",
+    "무인매장/편의점": "내 근처 편의점",
+    "찜질방/사우나": "내 근처 찜질방",
+    "온천/스파": "내 근처 스파",
+    "명상센터": "명상센터",
+    "스터디카페": "내 근처 스터디카페",
+    "24시 카페": "내 근처 24시 카페",
+    "24시 찜질방": "내 근처 24시 찜질방",
+    "반려동물 카페": "반려동물 카페",
+    "사진관/셀프스튜디오": "셀프스튜디오",
+    "쿠킹클래스/원데이클래스": "원데이클래스",
+  };
+  // 매핑에 있으면 사용, 없으면 "내 근처 + 이름"
+  if (map[name]) return map[name];
+  // 슬래시가 있으면 첫 번째만 사용
+  const clean = name.split("/")[0].replace(/\(.*\)/, "").trim();
+  return "내 근처 " + clean;
+}
+
 export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideTabBar, pendingPlaceContext, onClearPendingContext }) {
   // ── 장소 탭 상태 ──
   const [placeScreen, setPlaceScreen] = useState("home"); // home | setup | tournament | result
@@ -379,13 +456,13 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
               </div>
             )}
             <div style={{ display:"flex", gap:8, marginTop:14 }}>
-              <a href={`https://www.google.com/maps/search/${encodeURIComponent(placeResult.main.name + " 근처")}`}
+              <a href={`https://www.google.com/maps/search/${encodeURIComponent(getMapQuery(placeResult.main.name))}`}
                 target="_blank" rel="noopener noreferrer" style={{
                   flex:1, padding:"10px", borderRadius:10, background:"rgba(255,255,255,0.2)",
                   color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
                   textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)"
                 }}>📍 구글맵</a>
-              <a href={`https://map.kakao.com/?q=${encodeURIComponent(placeResult.main.name)}`}
+              <a href={`https://map.kakao.com/?q=${encodeURIComponent(getMapQuery(placeResult.main.name))}`}
                 target="_blank" rel="noopener noreferrer" style={{
                   flex:1, padding:"10px", borderRadius:10, background:"rgba(255,255,255,0.2)",
                   color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
@@ -417,12 +494,12 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                         ))}
                       </div>
                       <div style={{ display:"flex", gap:6, marginTop:8 }}>
-                        <a href={`https://www.google.com/maps/search/${encodeURIComponent(p.name + " 근처")}`}
+                        <a href={`https://www.google.com/maps/search/${encodeURIComponent(getMapQuery(p.name))}`}
                           target="_blank" rel="noopener noreferrer" style={{
                             padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
                             fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
                           }}>📍 구글맵</a>
-                        <a href={`https://map.kakao.com/?q=${encodeURIComponent(p.name)}`}
+                        <a href={`https://map.kakao.com/?q=${encodeURIComponent(getMapQuery(p.name))}`}
                           target="_blank" rel="noopener noreferrer" style={{
                             padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
                             fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
