@@ -5,7 +5,7 @@ import { recipes, recipeCategories, cuisineCategories, jpSubcategories, krSubcat
 const CATEGORIES = [
   { key: "home", emoji: "🏠", label: "생활", sub: "" },
   { key: "recipe", emoji: "🍳", label: "뭐 해먹지", sub: "집에서 직접 해먹는 레시피" },
-  { key: "lifetip", emoji: "🧹", label: "자취 꿀팁", sub: "알아두면 인생이 편해지는" },
+  { key: "lifetip", emoji: "🧹", label: "생활 꿀팁", sub: "알아두면 인생이 편해지는" },
   { key: "repair", emoji: "🛠️", label: "셀프 수리", sub: "업체 부르기 전에 시도해봐" },
   { key: "bug", emoji: "🐛", label: "벌레 퇴치", sub: "침착하게 대처하는 법" },
   { key: "emergency", emoji: "🚨", label: "응급 상황", sub: "당황하지 말고 따라해" },
@@ -136,7 +136,7 @@ export default function Lifestyle() {
                       <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-main)" }}>{item.title || item.name}</div>
                         <div style={{ fontSize: 11, color: "var(--text-dim)" }}>
-                          {item.source === "recipe" ? "레시피" : item.source === "lifetip" ? "자취 꿀팁" : item.source === "repair" ? "셀프 수리" : item.source === "bug" ? "벌레 퇴치" : "응급 상황"}
+                          {item.source === "recipe" ? "레시피" : item.source === "lifetip" ? "생활 꿀팁" : item.source === "repair" ? "셀프 수리" : item.source === "bug" ? "벌레 퇴치" : "응급 상황"}
                         </div>
                       </div>
                     </div>
@@ -367,7 +367,7 @@ export default function Lifestyle() {
       {/* ── 팁 목록 (자취꿀팁 / 셀프수리 / 벌레퇴치 / 응급상황) ── */}
       {["lifetip", "repair", "bug", "emergency"].includes(screen) && (() => {
         const tipMap = {
-          lifetip: { data: lifeTips, title: "🧹 자취 꿀팁", sub: "알아두면 인생이 편해지는" },
+          lifetip: { data: lifeTips, title: "🧹 생활 꿀팁", sub: "알아두면 인생이 편해지는" },
           repair: { data: repairTips, title: "🛠️ 셀프 수리", sub: "업체 부르기 전에 시도해봐" },
           bug: { data: bugTips, title: "🐛 벌레 퇴치", sub: "침착하게 대처하는 법" },
           emergency: { data: emergencyTips, title: "🚨 응급 상황", sub: "당황하지 말고 따라해" },
