@@ -80,20 +80,25 @@ function getMapQuery(name) {
   return "내 근처 " + clean;
 }
 
-// 카카오맵 열기 (앱 → 웹 폴백)
+// 카카오맵 열기 (현재 위치 기반)
 function openKakaoMap(query) {
   const encoded = encodeURIComponent(query);
-  // 모바일이면 앱 스킴 시도
   const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-  if (isMobile) {
-    const appUrl = `kakaomap://search?q=${encoded}`;
-    const webUrl = `https://map.kakao.com/link/search/${encoded}`;
-    // 앱 열기 시도, 실패하면 웹으로
-    const start = Date.now();
-    window.location.href = appUrl;
-    setTimeout(() => {
-      if (Date.now() - start < 2000) window.open(webUrl, "_blank");
-    }, 1500);
+
+  if (isMobile && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        window.location.href = `kakaomap://search?q=${encoded}&p=${latitude},${longitude}`;
+      },
+      () => {
+        // 위치 권한 거부 시 좌표 없이
+        window.location.href = `kakaomap://search?q=${encoded}`;
+      },
+      { timeout: 3000 }
+    );
+  } else if (isMobile) {
+    window.location.href = `kakaomap://search?q=${encoded}`;
   } else {
     window.open(`https://map.kakao.com/link/search/${encoded}`, "_blank");
   }
