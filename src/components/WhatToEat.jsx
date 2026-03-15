@@ -305,6 +305,51 @@ export default function WhatToEat({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
           </div>
         </div>
 
+        {/* 지금 뭐가 땡겨? 무드 선택 */}
+        <div style={{ fontSize:13, fontWeight:700, color:"var(--text-sub)", marginBottom:10 }}>지금 뭐가 땡겨?</div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8, marginBottom:20 }}>
+          {[
+            { mood:"자극적", emoji:"🌶️", label:"매운 거" },
+            { mood:"든든", emoji:"🍖", label:"든든하게" },
+            { mood:"가벼운", emoji:"🥗", label:"가볍게" },
+            { mood:"해장", emoji:"🍜", label:"국물/해장" },
+            { mood:"특별한", emoji:"✨", label:"특별하게" },
+            { mood:"빠르게", emoji:"⚡", label:"빠르게" },
+          ].map(m => (
+            <button key={m.mood} onClick={() => {
+              // 해당 무드에 맞는 음식 필터 → 랜덤 1개 바로 추천
+              const pool = foods.filter(f => f.mood?.includes(m.mood));
+              const pick = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : foods[Math.floor(Math.random() * foods.length)];
+              setFoodChampion(pick);
+              setFoodAnswers({ mood: m.mood });
+              setRerollCount(0);
+              setAfterPhase("idle"); setAfterDots([false,false,false]);
+              afterTimers.current.forEach(clearTimeout); afterTimers.current = [];
+              const t1 = setTimeout(() => { setAfterPhase("dots"); setAfterDots([true,false,false]); }, 1500);
+              const t2 = setTimeout(() => setAfterDots([true,true,false]), 2000);
+              const t3 = setTimeout(() => setAfterDots([true,true,true]), 2500);
+              const t4 = setTimeout(() => { setAfterBurstKey(k => k+1); setAfterPhase("show"); }, 3100);
+              afterTimers.current = [t1,t2,t3,t4];
+              try {
+                const fh = JSON.parse(localStorage.getItem("food_history") || "[]");
+                const today = new Date().toLocaleDateString("ko-KR", { month:"short", day:"numeric" });
+                fh.push({ id: pick.id, name: pick.name, emoji: pick.emoji, date: today });
+                if (fh.length > 20) fh.splice(0, fh.length - 20);
+                localStorage.setItem("food_history", JSON.stringify(fh));
+              } catch {}
+              setFoodScreen("wcResult");
+            }} style={{
+              padding:"16px 8px", borderRadius:14, background:"var(--bg-card)",
+              border:"1.5px solid rgba(255,255,255,0.1)", cursor:"pointer", fontFamily:"inherit",
+              display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+              boxShadow:"0 2px 6px rgba(0,0,0,0.12)",
+            }}>
+              <span style={{ fontSize:24 }}>{m.emoji}</span>
+              <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>{m.label}</span>
+            </button>
+          ))}
+        </div>
+
         <button onClick={() => { setRerollCount(0); setFoodStep(0); setFoodAnswers({}); setFoodChampion(null); setFoodScreen("wcQuestions"); }} style={{
           width:"100%", padding:"20px", background:"var(--text-main)", color:"var(--bg-main)",
           border:"none", borderRadius:16, fontSize:16, fontWeight:800,

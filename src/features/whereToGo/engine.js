@@ -94,6 +94,8 @@ function getHomeActivityType(activity) {
   const genre = activity.genre || "";
   const vibe = activity.vibe || [];
   const need = activity.tags?.need || [];
+  // 반려동물 계열
+  if (["pet"].includes(genre) || ["강아지","고양이","반려","목욕","그루밍","산책"].some(k => name.includes(k))) return "relax";
   // 운동 계열
   if (["fitness","exercise","sport"].includes(genre) || ["홈트","요가","스트레칭","운동","플랭크"].some(k => name.includes(k))) return "exercise";
   // 정리 계열
@@ -228,7 +230,7 @@ function buildConnectionReason(place, ctx) {
           return `간식이랑 음료 사 가지고 들어가면 ${act.name}이 더 완벽해져.`;
         if (pName.includes("걷기") || pName.includes("산책"))
           return `${act.name} 하고 나서 가볍게 동네 한 바퀴 돌면 기분 전환 돼.`;
-        return `${act.name}은 집이 최고지! 나가기 전이나 후에 잠깐 들러봐.`;
+        return `${act.name} 하다가 잠깐 나가면 기분 전환 돼.`;
       }
       if (homeType === "exercise") {
         if (pName.includes("편의점") || pName.includes("무인"))
@@ -237,7 +239,7 @@ function buildConnectionReason(place, ctx) {
           return `실내 운동 하기 전에 가볍게 걸어서 몸 풀면 좋아.`;
         if (pName.includes("카페"))
           return `운동 끝나고 커피 한 잔이면 완벽한 루틴이야.`;
-        return `${act.name} 전후로 잠깐 나가서 바람 쐬고 와.`;
+        return `${act.name} 하고 나서 잠깐 나가서 바람 쐬고 와.`;
       }
       if (homeType === "tidy") {
         if (pName.includes("다이소") || pName.includes("문구"))
@@ -259,12 +261,12 @@ function buildConnectionReason(place, ctx) {
           return `간식 사서 돌아오면 ${act.name}에 더 집중돼.`;
         if (pName.includes("카페"))
           return `카페 분위기에서 하면 집중력이 달라져.`;
-        return `${act.name} 중간에 환기 겸 잠깐 나갔다 와.`;
+        return `${act.name} 하다 지치면 잠깐 나가서 환기하고 와.`;
       }
       // default
-      if (pName.includes("카페")) return `${act.name} 전후로 카페 한 잔이면 하루가 완성이야.`;
+      if (pName.includes("카페")) return `${act.name} 하다가 카페 한 잔이면 하루가 완성이야.`;
       if (pName.includes("편의점")) return `잠깐 바람 쐬면서 간식 사오면 더 좋아.`;
-      return `${act.name} 전후로 잠깐 나갔다 오면 기분 전환돼.`;
+      return `${act.name} 하다가 잠깐 나갔다 오면 기분 전환돼.`;
     }
 
     // 일반 활동 → 장소
@@ -312,7 +314,7 @@ function buildReason(pa, ctx, curSlot) {
   const reasons = [];
   if (ctx?.from === "whatToDo") {
     if (isHomeActivity(ctx.activity)) {
-      reasons.push(`${ctx.activity?.emoji || "✨"} ${ctx.activity?.name} 전후로 잠깐 들르기 좋은 곳`);
+      reasons.push(`${ctx.activity?.emoji || "✨"} ${ctx.activity?.name} 하면서 잠깐 들르기 좋은 곳`);
     } else {
       reasons.push(`${ctx.activity?.emoji || "✨"} ${ctx.activity?.name} 하기 좋은 곳`);
     }
@@ -379,8 +381,10 @@ export function buildTournamentBracket(pa, ctx, bracketSize = 16) {
     if (ctx?.from === "whatToDo" && ctx.activity) {
       const homeAct = isHomeActivity(ctx.activity);
       if (homeAct) {
-        const nameMatch = HOME_ACTIVITY_PLACES.names.some(n => p.name?.includes(n));
-        const tagMatch = HOME_ACTIVITY_PLACES.tags.some(t => p.tags?.includes(t));
+        const homeType = getHomeActivityType(ctx.activity);
+        const homePlaces = HOME_ACTIVITY_PLACES_BY_TYPE[homeType] || HOME_ACTIVITY_PLACES_BY_TYPE.default;
+        const nameMatch = homePlaces.names.some(n => p.name?.includes(n));
+        const tagMatch = homePlaces.tags.some(t => p.tags?.includes(t));
         if (nameMatch) score += 12;
         else if (tagMatch) score += 6;
         else score -= 8;

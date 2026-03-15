@@ -86,7 +86,7 @@ export default function ResultScreen({
           background:"var(--bg-card)", borderRadius:14, padding:"10px 14px",
           marginBottom:12, fontSize:12, color:"var(--text-sub)", lineHeight:1.6
         }}>
-          📊 <b>너 이런 애야</b> — {learnedVibes.slice(0,3).map(v => VIBE_LABEL[v] || v).join(", ")} 좋아하잖아
+          📊 <b>취향 분석</b> — {learnedVibes.slice(0,3).map(v => VIBE_LABEL[v] || v).join(", ")} 위주로 골랐어
         </div>
       )}
 
