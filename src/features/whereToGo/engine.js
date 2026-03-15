@@ -111,9 +111,9 @@ function scorePlaces(pool, pa, ctx, curSlot) {
         const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
         const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
         const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
-        if (nameMatch) score += 8;
-        else if (tagMatch || typeMatch) score += 5;
-        else score -= 3; // 장르와 관련 없는 장소 페널티
+        if (nameMatch) score += 12;
+        else if (tagMatch || typeMatch) score += 7;
+        else score -= 8; // 장르와 관련 없는 장소 강력 페널티
       }
     }
     if (ctx?.from === "whatToEat") {
@@ -205,9 +205,9 @@ export function buildTournamentBracket(pa, ctx, bracketSize = 16) {
         const nameMatch = genreMap.names?.some(n => p.name?.includes(n));
         const tagMatch = genreMap.tags?.some(t => p.tags?.includes(t));
         const typeMatch = genreMap.types?.some(t => p.type?.includes(t));
-        if (nameMatch) score += 6;
-        else if (tagMatch || typeMatch) score += 4;
-        else score -= 2;
+        if (nameMatch) score += 10;
+        else if (tagMatch || typeMatch) score += 6;
+        else score -= 6;
       }
     }
     if (ctx?.from === "whatToEat") {

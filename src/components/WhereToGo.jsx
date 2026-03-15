@@ -365,7 +365,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                   color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
                   textDecoration:"none", border:"1px solid rgba(255,255,255,0.3)"
                 }}>📍 구글맵</a>
-              <a href={`https://map.kakao.com/link/search/${encodeURIComponent(placeResult.main.name)}`}
+              <a href={`https://map.kakao.com/?q=${encodeURIComponent(placeResult.main.name)}`}
                 target="_blank" rel="noopener noreferrer" style={{
                   flex:1, padding:"10px", borderRadius:10, background:"rgba(255,255,255,0.2)",
                   color:"#fff", fontSize:12, fontWeight:700, textAlign:"center",
@@ -402,7 +402,7 @@ export default function WhereToGo({ sodaKeys, setSodaKeys, sodaColorRef, onHideT
                             padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
                             fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
                           }}>📍 구글맵</a>
-                        <a href={`https://map.kakao.com/link/search/${encodeURIComponent(p.name)}`}
+                        <a href={`https://map.kakao.com/?q=${encodeURIComponent(p.name)}`}
                           target="_blank" rel="noopener noreferrer" style={{
                             padding:"4px 10px", borderRadius:8, background:"var(--bg-main)",
                             fontSize:10, fontWeight:700, color:"var(--text-sub)", textDecoration:"none"
